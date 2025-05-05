@@ -20,11 +20,30 @@ export default function CheckInForm({ records, onCheckIn }: CheckInFormProps) {
   // 状态管理
   const [morningCheckedToday, setMorningCheckedToday] = useState<boolean>(false);
   const [eveningCheckedToday, setEveningCheckedToday] = useState<boolean>(false);
+  const [currentTime, setCurrentTime] = useState<string>(format(new Date(), "HH:mm:ss"));
+  const [currentDate, setCurrentDate] = useState<string>(format(new Date(), "yyyy年MM月dd日"));
 
   // 初始化：检查今天是否已打卡
   useEffect(() => {
     checkIfCheckedInToday(records);
   }, [records]);
+
+  // 更新当前时间和日期
+  useEffect(() => {
+    const updateDateTime = () => {
+      const now = new Date();
+      setCurrentTime(format(now, "HH:mm:ss"));
+      setCurrentDate(format(now, "yyyy年MM月dd日"));
+    };
+
+    // 立即更新一次
+    updateDateTime();
+
+    // 每秒更新一次
+    const timer = setInterval(updateDateTime, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   // 检查今天是否已打卡
   const checkIfCheckedInToday = (records: CheckInRecord[]) => {
@@ -104,14 +123,17 @@ export default function CheckInForm({ records, onCheckIn }: CheckInFormProps) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground mb-4">
-          打卡将记录当前时间，请确保在合适的时间进行打卡。
-        </p>
+        <div className="flex flex-col items-center mb-4">
+          <div className="text-sm text-muted-foreground mb-1">{currentDate}</div>
+          <div className="text-3xl font-mono font-semibold bg-muted px-5 py-2 rounded-md">
+            {currentTime}
+          </div>
+        </div>
         <div className="flex flex-col sm:flex-row gap-4">
           <Button
             onClick={() => handleCheckIn('morning')}
             disabled={morningCheckedToday}
-            className="flex-1"
+            className="flex-1 py-3"
             size="lg"
           >
             <Sun className="mr-2" />
@@ -120,7 +142,7 @@ export default function CheckInForm({ records, onCheckIn }: CheckInFormProps) {
           <Button
             onClick={() => handleCheckIn('evening')}
             disabled={eveningCheckedToday}
-            className="flex-1"
+            className="flex-1 py-3"
             variant="secondary"
             size="lg"
           >

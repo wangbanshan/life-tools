@@ -77,7 +77,7 @@ export default function CheckInPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-8 max-w-4xl">
+    <div className="container mx-auto py-6 px-4 space-y-8 max-w-4xl">
       <h1 className="text-3xl font-bold text-center md:text-left">早睡早起打卡</h1>
 
       {/* 打卡表单组件 */}
