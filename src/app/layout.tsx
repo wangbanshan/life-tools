@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -33,7 +34,7 @@ export default function RootLayout({
             <header className="border-b">
               <div className="container mx-auto p-4">
                 <nav className="flex justify-between items-center">
-                  <a href="/" className="text-xl font-bold">生活工具集</a>
+                  <Link href="/" className="text-xl font-bold">生活工具集</Link>
                 </nav>
               </div>
             </header>
