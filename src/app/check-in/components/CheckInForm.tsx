@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Loader2 } from "lucide-react";
 import { useCheckInRecords, useAddCheckInRecord } from "@/lib/hooks/useCheckInRecords";
 import { useAuthStore } from "@/lib/stores/useAuthStore";
 import { AuthButtons } from "@/components/auth/AuthButtons";
@@ -18,7 +18,7 @@ export default function CheckInForm() {
   const { user } = useAuthStore();
   
   // 获取打卡记录
-  const { data: records = [] } = useCheckInRecords();
+  const { data: records = [], isLoading: isLoadingRecords, error: recordsError } = useCheckInRecords();
   
   // 添加打卡记录
   const addCheckInMutation = useAddCheckInRecord();
@@ -91,8 +91,10 @@ export default function CheckInForm() {
       onSuccess: () => {
         if (type === 'morning') {
           toast.success("早上好！起床打卡成功！");
+          setMorningCheckedToday(true);
         } else {
           toast.success("晚安！睡觉打卡成功！");
+          setEveningCheckedToday(true);
         }
       },
       onError: (error) => {
@@ -100,6 +102,25 @@ export default function CheckInForm() {
       }
     });
   };
+
+  // 处理错误状态
+  if (recordsError) {
+    return (
+      <Card className="w-full bg-red-50">
+        <CardHeader>
+          <CardTitle className="text-red-600">数据加载失败</CardTitle>
+          <CardDescription className="text-red-500">
+            获取打卡记录时出错，请刷新页面重试
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => window.location.reload()} variant="destructive">
+            重新加载
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full">
@@ -126,41 +147,60 @@ export default function CheckInForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col items-center mb-4">
-          <div className="text-sm text-muted-foreground mb-1">{currentDate}</div>
-          <div className="text-3xl font-mono font-semibold bg-muted px-5 py-2 rounded-md">
-            {currentTime}
+        <div className="flex flex-col items-center justify-center text-center py-8 space-y-6">
+          <div className="space-y-1">
+            <div className="text-4xl font-bold tabular-nums">{currentTime}</div>
+            <div className="text-sm text-muted-foreground">{currentDate}</div>
           </div>
+
+          {isLoadingRecords ? (
+            <div className="flex items-center justify-center w-full py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : user ? (
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Button 
+                variant="outline" 
+                size="lg"
+                className={cn(
+                  "flex items-center gap-2 w-full sm:w-auto",
+                  morningCheckedToday ? "border-green-500 text-green-500" : ""
+                )}
+                onClick={() => handleCheckIn('morning')}
+                disabled={morningCheckedToday || addCheckInMutation.isPending}
+              >
+                {addCheckInMutation.isPending && addCheckInMutation.variables === 'morning' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sun className="h-4 w-4 mr-2" />
+                )}
+                起床打卡
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                className={cn(
+                  "flex items-center gap-2 w-full sm:w-auto",
+                  eveningCheckedToday ? "border-blue-500 text-blue-500" : ""
+                )}
+                onClick={() => handleCheckIn('evening')}
+                disabled={eveningCheckedToday || addCheckInMutation.isPending}
+              >
+                {addCheckInMutation.isPending && addCheckInMutation.variables === 'evening' ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Moon className="h-4 w-4 mr-2" />
+                )}
+                睡觉打卡
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4 w-full max-w-sm">
+              <p className="text-muted-foreground">登录后开始记录您的作息时间</p>
+              <AuthButtons className="justify-center" />
+            </div>
+          )}
         </div>
-        
-        {user ? (
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button
-              onClick={() => handleCheckIn('morning')}
-              disabled={morningCheckedToday || addCheckInMutation.isPending}
-              className="flex-1 py-3"
-              size="lg"
-            >
-              <Sun className="mr-2" />
-              {morningCheckedToday ? "今日已起床打卡" : "起床打卡"}
-            </Button>
-            <Button
-              onClick={() => handleCheckIn('evening')}
-              disabled={eveningCheckedToday || addCheckInMutation.isPending}
-              className="flex-1 py-3"
-              variant="secondary"
-              size="lg"
-            >
-              <Moon className="mr-2" />
-              {eveningCheckedToday ? "今日已睡觉打卡" : "睡觉打卡"}
-            </Button>
-          </div>
-        ) : (
-          <div className="text-center">
-            <p className="mb-4 text-muted-foreground">请登录后进行打卡</p>
-            <AuthButtons className="justify-center" />
-          </div>
-        )}
       </CardContent>
     </Card>
   );

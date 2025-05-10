@@ -92,7 +92,7 @@ export default function CheckInHistory({ records }: CheckInHistoryProps) {
       </CardContent>
       <CardFooter className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
         <p className="text-sm text-muted-foreground">
-          数据使用浏览器本地存储，清除浏览器数据会导致记录丢失
+          数据已安全保存在您的账户中，可跨设备访问
         </p>
         <Button
           variant="outline"
