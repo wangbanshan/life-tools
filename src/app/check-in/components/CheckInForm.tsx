@@ -9,14 +9,9 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Sun, Moon, Loader2 } from "lucide-react";
 import { useCheckInRecords, useAddCheckInRecord } from "@/lib/hooks/useCheckInRecords";
-import { useAuthStore } from "@/lib/stores/useAuthStore";
-import { AuthButtons } from "@/components/auth/AuthButtons";
 import { CheckInRecord } from "../types";
 
 export default function CheckInForm() {
-  // 获取认证状态
-  const { user } = useAuthStore();
-  
   // 获取打卡记录
   const { data: records = [], isLoading: isLoadingRecords, error: recordsError } = useCheckInRecords();
   
@@ -72,11 +67,6 @@ export default function CheckInForm() {
 
   // 打卡功能
   const handleCheckIn = (type: 'morning' | 'evening') => {
-    if (!user) {
-      toast.error("请先登录再进行打卡！");
-      return;
-    }
-    
     if (type === 'morning' && morningCheckedToday) {
       toast.error("今天已经进行过起床打卡了！");
       return;
@@ -157,7 +147,7 @@ export default function CheckInForm() {
             <div className="flex items-center justify-center w-full py-8">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             </div>
-          ) : user ? (
+          ) : (
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <Button 
                 variant="outline" 
@@ -193,11 +183,6 @@ export default function CheckInForm() {
                 )}
                 睡觉打卡
               </Button>
-            </div>
-          ) : (
-            <div className="space-y-4 w-full max-w-sm">
-              <p className="text-muted-foreground">登录后开始记录您的作息时间</p>
-              <AuthButtons className="justify-center" />
             </div>
           )}
         </div>

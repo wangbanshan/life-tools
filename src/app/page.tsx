@@ -1,8 +1,24 @@
-import Link from "next/link";
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { useAuthStore } from "@/lib/stores/useAuthStore";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function Home() {
+  const { user } = useAuthStore();
+  const router = useRouter();
+  
+  const handleCheckInClick = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      toast.error("请先点击右上角进行登录！");
+    } else {
+      router.push("/check-in");
+    }
+  };
+  
   return (
     <div className="container mx-auto py-10 space-y-8 max-w-4xl">
       <div className="text-center space-y-4">
@@ -19,9 +35,12 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/check-in">
-              <Button className="w-full">立即打卡</Button>
-            </Link>
+            <Button 
+              className="w-full" 
+              onClick={handleCheckInClick}
+            >
+              立即打卡
+            </Button>
           </CardContent>
         </Card>
         
