@@ -8,15 +8,21 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Sun, Moon } from "lucide-react";
-
+import { useCheckInRecords, useAddCheckInRecord } from "@/lib/hooks/useCheckInRecords";
+import { useAuthStore } from "@/lib/stores/useAuthStore";
+import { AuthButtons } from "@/components/auth/AuthButtons";
 import { CheckInRecord } from "../types";
 
-interface CheckInFormProps {
-  records: CheckInRecord[];
-  onCheckIn: (newRecord: CheckInRecord) => void;
-}
-
-export default function CheckInForm({ records, onCheckIn }: CheckInFormProps) {
+export default function CheckInForm() {
+  // 获取认证状态
+  const { user } = useAuthStore();
+  
+  // 获取打卡记录
+  const { data: records = [] } = useCheckInRecords();
+  
+  // 添加打卡记录
+  const addCheckInMutation = useAddCheckInRecord();
+  
   // 状态管理
   const [morningCheckedToday, setMorningCheckedToday] = useState<boolean>(false);
   const [eveningCheckedToday, setEveningCheckedToday] = useState<boolean>(false);
@@ -66,6 +72,11 @@ export default function CheckInForm({ records, onCheckIn }: CheckInFormProps) {
 
   // 打卡功能
   const handleCheckIn = (type: 'morning' | 'evening') => {
+    if (!user) {
+      toast.error("请先登录再进行打卡！");
+      return;
+    }
+    
     if (type === 'morning' && morningCheckedToday) {
       toast.error("今天已经进行过起床打卡了！");
       return;
@@ -76,26 +87,18 @@ export default function CheckInForm({ records, onCheckIn }: CheckInFormProps) {
       return;
     }
 
-    const now = new Date();
-    const newRecord: CheckInRecord = {
-      id: now.getTime().toString(),
-      timestamp: now.getTime(),
-      formattedDate: format(now, "yyyy年MM月dd日"),
-      formattedTime: format(now, "HH:mm:ss"),
-      type: type
-    };
-
-    // 调用父组件的回调函数
-    onCheckIn(newRecord);
-
-    // 更新本地状态
-    if (type === 'morning') {
-      setMorningCheckedToday(true);
-      toast.success("早上好！起床打卡成功！");
-    } else {
-      setEveningCheckedToday(true);
-      toast.success("晚安！睡觉打卡成功！");
-    }
+    addCheckInMutation.mutate(type, {
+      onSuccess: () => {
+        if (type === 'morning') {
+          toast.success("早上好！起床打卡成功！");
+        } else {
+          toast.success("晚安！睡觉打卡成功！");
+        }
+      },
+      onError: (error) => {
+        toast.error(`打卡失败: ${error.message}`);
+      }
+    });
   };
 
   return (
@@ -129,27 +132,35 @@ export default function CheckInForm({ records, onCheckIn }: CheckInFormProps) {
             {currentTime}
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Button
-            onClick={() => handleCheckIn('morning')}
-            disabled={morningCheckedToday}
-            className="flex-1 py-3"
-            size="lg"
-          >
-            <Sun className="mr-2" />
-            {morningCheckedToday ? "今日已起床打卡" : "起床打卡"}
-          </Button>
-          <Button
-            onClick={() => handleCheckIn('evening')}
-            disabled={eveningCheckedToday}
-            className="flex-1 py-3"
-            variant="secondary"
-            size="lg"
-          >
-            <Moon className="mr-2" />
-            {eveningCheckedToday ? "今日已睡觉打卡" : "睡觉打卡"}
-          </Button>
-        </div>
+        
+        {user ? (
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button
+              onClick={() => handleCheckIn('morning')}
+              disabled={morningCheckedToday || addCheckInMutation.isPending}
+              className="flex-1 py-3"
+              size="lg"
+            >
+              <Sun className="mr-2" />
+              {morningCheckedToday ? "今日已起床打卡" : "起床打卡"}
+            </Button>
+            <Button
+              onClick={() => handleCheckIn('evening')}
+              disabled={eveningCheckedToday || addCheckInMutation.isPending}
+              className="flex-1 py-3"
+              variant="secondary"
+              size="lg"
+            >
+              <Moon className="mr-2" />
+              {eveningCheckedToday ? "今日已睡觉打卡" : "睡觉打卡"}
+            </Button>
+          </div>
+        ) : (
+          <div className="text-center">
+            <p className="mb-4 text-muted-foreground">请登录后进行打卡</p>
+            <AuthButtons className="justify-center" />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { Providers } from "./providers";
+import { AuthStatus } from "@/components/auth/AuthStatus";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,9 @@ export default function RootLayout({
               <div className="container mx-auto p-4">
                 <nav className="flex justify-between items-center">
                   <Link href="/" className="text-xl font-bold">生活工具集</Link>
+                  <div className="flex items-center gap-4">
+                    <AuthStatus />
+                  </div>
                 </nav>
               </div>
             </header>

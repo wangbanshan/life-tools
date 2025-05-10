@@ -1,0 +1,60 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('缺少必要的 Supabase 环境变量');
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export type Database = {
+  public: {
+    Tables: {
+      check_in_records: {
+        Row: {
+          id: string;
+          user_id: string;
+          timestamp: number;
+          type: 'morning' | 'evening';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          timestamp: number;
+          type: 'morning' | 'evening';
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          timestamp?: number;
+          type?: 'morning' | 'evening';
+          created_at?: string;
+        };
+      };
+      profiles: {
+        Row: {
+          id: string;
+          username: string | null;
+          avatar_url: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          id: string;
+          username?: string | null;
+          avatar_url?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          username?: string | null;
+          avatar_url?: string | null;
+          updated_at?: string | null;
+        };
+      };
+    };
+  };
+};
