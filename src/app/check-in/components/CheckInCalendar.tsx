@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameMonth, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Sun, Moon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sun, Moon, Clock } from "lucide-react";
 
 import { DailyRecord } from "../types";
 
@@ -49,7 +49,61 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
     return dailyRecords.find(record => record.date === selectedDate);
   };
 
+  // 计算睡眠时间
+  const calculateSleepDuration = (currentRecord: DailyRecord, previousDayRecord?: DailyRecord) => {
+    if (!currentRecord.morning || !previousDayRecord?.evening) {
+      return null;
+    }
+
+    // 获取当天早上起床时间和前一天晚上睡觉时间的时间戳
+    const wakeupTimestamp = currentRecord.morning.timestamp;
+    const sleepTimestamp = previousDayRecord.evening.timestamp;
+
+    // 将时间戳转换为日期对象，用于提取小时和分钟
+    const wakeupDate = new Date(wakeupTimestamp);
+    const sleepDate = new Date(sleepTimestamp);
+    console.log(wakeupDate, sleepDate, '1111');
+
+    // 提取时间部分（小时和分钟）
+    const wakeupHours = wakeupDate.getHours();
+    const wakeupMinutes = wakeupDate.getMinutes();
+    const sleepHours = sleepDate.getHours();
+    const sleepMinutes = sleepDate.getMinutes();
+
+    // 计算睡眠时间（分钟）
+    let sleepMinutesTotal = 0;
+
+    // 如果睡觉时间小于起床时间（例如：睡觉02:02，起床10:08），直接计算差值
+    if (sleepHours < wakeupHours || (sleepHours === wakeupHours && sleepMinutes < wakeupMinutes)) {
+      sleepMinutesTotal = (wakeupHours - sleepHours) * 60 + (wakeupMinutes - sleepMinutes);
+    }
+    // 如果睡觉时间大于起床时间（例如：睡觉23:52，起床08:28），计算到午夜的时间加上从午夜到起床的时间
+    else {
+      sleepMinutesTotal = (24 - sleepHours) * 60 - sleepMinutes + wakeupHours * 60 + wakeupMinutes;
+    }
+
+    // 计算小时和剩余分钟
+    const hoursSlept = Math.floor(sleepMinutesTotal / 60);
+    const minutesSlept = sleepMinutesTotal % 60;
+
+    return {
+      hours: hoursSlept,
+      minutes: minutesSlept,
+      total: sleepMinutesTotal
+    };
+  };
+
+  // 获取前一天的记录
+  const getPreviousDayRecord = (date: string) => {
+    const currentDate = parseISO(date);
+    const previousDate = format(new Date(currentDate.setDate(currentDate.getDate() - 1)), "yyyy-MM-dd");
+    return dailyRecords.find(record => record.date === previousDate);
+  };
+
   const selectedRecord = getSelectedDateRecord();
+  const previousDayRecord = selectedRecord ? getPreviousDayRecord(selectedRecord.date) : undefined;
+  const sleepDuration = selectedRecord && previousDayRecord ? calculateSleepDuration(selectedRecord, previousDayRecord) : null;
+
   const days = getDaysInMonth();
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -70,9 +124,6 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
             </Button>
           </div>
         </CardTitle>
-        <CardDescription>
-          查看每日打卡记录
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-7 gap-1 text-center mb-2">
@@ -146,6 +197,25 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Moon className="size-4" />
                   <span>未记录睡觉时间</span>
+                </div>
+              )}
+
+              {sleepDuration && (
+                <div className="flex items-center gap-2">
+                  <Clock className="size-4 text-purple-500" />
+                  <span>睡眠时间: </span>
+                  <span className="font-medium text-purple-500">
+                    {sleepDuration.hours}小时{sleepDuration.minutes > 0 ? ` ${sleepDuration.minutes}分钟` : ''}
+                    {sleepDuration.total < 420 && <span className="ml-2 text-xs text-red-500">(睡眠不足)</span>}
+                    {sleepDuration.total > 540 && <span className="ml-2 text-xs text-green-500">(睡眠充足)</span>}
+                  </span>
+                </div>
+              )}
+
+              {selectedRecord.morning && !sleepDuration && previousDayRecord && !previousDayRecord.evening && (
+                <div className="flex items-center gap-2 mt-2 pt-2 border-t text-muted-foreground">
+                  <Clock className="size-4" />
+                  <span>无法计算睡眠时间（前一天未记录睡觉时间）</span>
                 </div>
               )}
             </div>

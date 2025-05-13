@@ -1,56 +1,24 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Sun, Moon, Download } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
 
-import { CheckInRecord } from "../types";
+import { DailyRecord } from "../types";
 
 interface CheckInHistoryProps {
-  records: CheckInRecord[];
+  dailyRecords: DailyRecord[];
 }
 
-export default function CheckInHistory({ records }: CheckInHistoryProps) {
-  // 导出打卡历史数据为JSON
-  const handleExportData = () => {
-    try {
-      // 创建一个Blob对象
-      const dataStr = JSON.stringify(records, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-
-      // 创建一个下载链接
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `打卡记录_${new Date().toISOString().split("T")[0]}.json`;
-
-      // 触发下载
-      document.body.appendChild(link);
-      link.click();
-
-      // 清理
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success("打卡记录导出成功！");
-    } catch (error) {
-      console.error("导出数据失败:", error);
-      toast.error("导出数据失败，请重试！");
-    }
-  };
+export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>打卡历史</CardTitle>
-        <CardDescription>
-          查看你的打卡记录和坚持情况
-        </CardDescription>
       </CardHeader>
       <CardContent>
-        {records.length === 0 ? (
+        {dailyRecords.length === 0 ? (
           <p className="text-center py-8 text-muted-foreground">暂无打卡记录，开始你的第一次打卡吧！</p>
         ) : (
           <div className="rounded-md border">
@@ -58,53 +26,44 @@ export default function CheckInHistory({ records }: CheckInHistoryProps) {
               <TableHeader>
                 <TableRow>
                   <TableHead>日期</TableHead>
-                  <TableHead>时间</TableHead>
-                  <TableHead>类型</TableHead>
+                  <TableHead>起床时间</TableHead>
+                  <TableHead>睡觉时间</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {records.map((record) => (
-                  <TableRow key={record.id}>
-                    <TableCell className="font-medium">{record.formattedDate}</TableCell>
-                    <TableCell>{record.formattedTime}</TableCell>
+                {dailyRecords.map((record) => (
+                  <TableRow key={record.date}>
+                    <TableCell className="font-medium">{record.date.replace(/-/g, '/')}</TableCell>
                     <TableCell>
-                      {record.type === 'morning' ? (
+                      {record.morning ? (
                         <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
                           <Sun className="size-3 mr-1" />
-                          起床
+                          {record.morning.formattedTime}
                         </Badge>
                       ) : (
+                        <span className="text-muted-foreground text-sm">未记录</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {record.evening ? (
                         <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">
                           <Moon className="size-3 mr-1" />
-                          睡觉
+                          {record.evening.formattedTime}
                         </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">未记录</span>
                       )}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
-              <TableCaption>
-                共 {records.length} 条打卡记录
+              <TableCaption className="pb-2">
+                共 {dailyRecords.length} 天打卡记录
               </TableCaption>
             </Table>
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
-        <p className="text-sm text-muted-foreground">
-          数据已安全保存在您的账户中，可跨设备访问
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full sm:w-auto"
-          onClick={handleExportData}
-          disabled={records.length === 0}
-        >
-          <Download className="size-4 mr-2" />
-          导出数据
-        </Button>
-      </CardFooter>
     </Card>
   );
 }
