@@ -4,11 +4,26 @@
 import CheckInForm from './components/CheckInForm';
 import CheckInCalendar from './components/CheckInCalendar';
 import CheckInHistory from './components/CheckInHistory';
+import LoadingSpinner from '@/components/ui/loading-spinner';
 import { useDailyRecords } from '@/lib/hooks/useCheckInRecords';
 
 export default function CheckInPage() {
   // 获取日期汇总记录（已包含睡眠周期配对逻辑）
-  const { dailyRecords, error } = useDailyRecords();
+  const { dailyRecords, isLoading, error } = useDailyRecords();
+
+  // 加载状态
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-6 px-4 max-w-4xl">
+        <h1 className="text-3xl font-bold text-center md:text-left mb-8">早睡早起打卡</h1>
+        <LoadingSpinner 
+          size="lg" 
+          text="正在加载睡眠记录..." 
+          className="min-h-[400px]"
+        />
+      </div>
+    );
+  }
 
   // 错误状态
   if (error) {

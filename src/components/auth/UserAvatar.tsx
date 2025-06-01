@@ -35,12 +35,12 @@ export function UserAvatar() {
   
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="outline-none">
-        <div className="relative">
+      <DropdownMenuTrigger asChild className="outline-none">
+        <div className="relative h-9 w-9 flex items-center justify-center cursor-pointer">
           {imageLoading && avatarUrl && (
             <Skeleton className="absolute inset-0 h-9 w-9 rounded-full" />
           )}
-          <Avatar className="h-9 w-9 cursor-pointer">
+          <Avatar className="h-9 w-9">
             <AvatarImage 
               src={avatarUrl || undefined} 
               alt={displayName}

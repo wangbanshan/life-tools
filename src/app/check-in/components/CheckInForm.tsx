@@ -12,7 +12,7 @@ import { useAuthStore } from "@/lib/stores/useAuthStore";
 
 export default function CheckInForm() {
   // 获取睡眠状态和用户信息
-  const { isSleeping, user } = useAuthStore();
+  const { isSleeping } = useAuthStore();
   
   // 添加打卡记录
   const addCheckInMutation = useAddCheckInRecord();
@@ -52,20 +52,6 @@ export default function CheckInForm() {
     
     addCheckInMutation.mutate({ type, timestamp });
   };
-
-  // 如果用户未登录
-  if (!user) {
-    return (
-      <Card className="w-full bg-yellow-50">
-        <CardHeader>
-          <CardTitle className="text-yellow-600">请先登录</CardTitle>
-          <CardDescription className="text-yellow-500">
-            您需要登录后才能使用打卡功能
-          </CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
 
   return (
     <Card className="w-full">

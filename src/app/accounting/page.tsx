@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import LoadingSpinner from '@/components/ui/loading-spinner';
 import AccountingForm from './components/AccountingForm';
 import AccountingCalendar from './components/AccountingCalendar';
 import AccountingList from './components/AccountingList';
@@ -21,7 +22,47 @@ export default function AccountingPage() {
   const month = currentMonth.getMonth() + 1;
   
   // 获取月度统计数据
-  const { data: monthlyStats } = useMonthlyStatistics(year, month);
+  const { data: monthlyStats, isLoading, error } = useMonthlyStatistics(year, month);
+
+  // 加载状态
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* 页面标题 */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            记账小助手
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            轻松记录您的日常消费，掌控财务状况
+          </p>
+        </div>
+        <LoadingSpinner 
+          size="lg" 
+          text="正在加载消费记录..." 
+          className="min-h-[400px]"
+        />
+      </div>
+    );
+  }
+
+  // 错误状态
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <h2 className="text-red-600 text-lg font-medium mb-2">加载失败</h2>
+          <p className="text-red-500 mb-4">获取消费记录时出错，请刷新页面重试</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+          >
+            刷新页面
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">

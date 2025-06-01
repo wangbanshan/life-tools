@@ -32,6 +32,8 @@ export default function AccountingForm({ defaultDate }: AccountingFormProps) {
     description: ''
   });
 
+  const [amountInput, setAmountInput] = useState<string>('');
+
   const addTransactionMutation = useAddTransaction();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,14 +60,21 @@ export default function AccountingForm({ defaultDate }: AccountingFormProps) {
         category: formData.category,
         description: ''
       });
+      setAmountInput(''); // 重置金额输入
     } catch (error) {
       console.error('提交失败:', error);
     }
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseFloat(e.target.value) || 0;
-    setFormData({ ...formData, amount: value });
+    const inputValue = e.target.value;
+    
+    // 直接更新输入状态
+    setAmountInput(inputValue);
+    
+    // 转换为数字值
+    const numericValue = parseFloat(inputValue) || 0;
+    setFormData({ ...formData, amount: numericValue });
   };
 
   const handleCategoryChange = (value: TransactionCategory) => {
@@ -103,7 +112,7 @@ export default function AccountingForm({ defaultDate }: AccountingFormProps) {
           type="number"
           step="0.01"
           min="0"
-          value={formData.amount || ''}
+          value={amountInput}
           onChange={handleAmountChange}
           placeholder="请输入消费金额"
           required
