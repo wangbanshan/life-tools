@@ -10,6 +10,7 @@
 - **智能配对**：自动将睡眠开始和结束事件配对成完整周期
 - **历史记录**：查看历史睡眠数据和统计信息
 - **日历视图**：直观展示每日睡眠情况
+- **记账小助手**：记录日常消费，智能分类统计
 - **PWA支持**：可安装到桌面，离线使用，原生应用体验
 
 ## PWA 功能
@@ -20,7 +21,7 @@
 🔄 **自动更新**：应用更新后自动获取最新版本  
 📶 **网络状态检测**：智能提示网络状态变化  
 
-详细安装和使用指南请查看：[PWA 使用指南](./PWA_GUIDE.md)
+详细安装和使用指南请查看：[PWA 使用指南](./docs/pwa-guide.md)
 
 ## 技术栈
 
@@ -81,83 +82,7 @@ yarn dev
 
 ### 数据库设置
 
-在 Supabase SQL 编辑器中执行以下 SQL 语句来创建必要的表和权限：
-
-1. **创建 Profiles 表**：
-
-```sql
--- 创建用户配置文件表
-create table public.profiles (
-  id uuid references auth.users on delete cascade not null primary key,
-  username text,
-  avatar_url text,
-  updated_at timestamp with time zone
-);
-
--- 启用行级安全策略
-alter table public.profiles enable row level security;
-
--- 用户只能访问自己的配置文件
-create policy "Users can view own profile" on public.profiles
-  for select using (auth.uid() = id);
-
-create policy "Users can update own profile" on public.profiles
-  for update using (auth.uid() = id);
-
--- 为新用户自动创建一个profile记录
-create function public.handle_new_user() 
-returns trigger as $$
-begin
-  insert into public.profiles (id)
-  values (new.id);
-  return new;
-end;
-$$ language plpgsql security definer;
-
--- 创建触发器以在新用户注册时创建profile
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute procedure public.handle_new_user();
-```
-
-2. **创建睡眠记录表**：
-
-```sql
--- 创建睡眠记录表
-create table public.check_in_records (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  timestamp bigint not null,
-  type text not null check (type in ('sleep_start', 'sleep_end')),
-  created_at timestamp with time zone default now()
-);
-
--- 添加外键约束
-alter table public.check_in_records 
-add constraint fk_check_in_records_user_id 
-foreign key (user_id) references auth.users(id) on delete cascade;
-
--- 创建索引以提高查询性能
-create index idx_check_in_records_user_id on public.check_in_records(user_id);
-create index idx_check_in_records_timestamp on public.check_in_records(timestamp);
-create index idx_check_in_records_user_timestamp on public.check_in_records(user_id, timestamp desc);
-
--- 启用行级安全策略
-alter table public.check_in_records enable row level security;
-
--- 创建RLS策略 - 用户只能访问自己的记录
-create policy "Users can view own check-in records" on public.check_in_records
-  for select using (auth.uid() = user_id);
-
-create policy "Users can insert own check-in records" on public.check_in_records
-  for insert with check (auth.uid() = user_id);
-
-create policy "Users can update own check-in records" on public.check_in_records
-  for update using (auth.uid() = user_id);
-
-create policy "Users can delete own check-in records" on public.check_in_records
-  for delete using (auth.uid() = user_id);
-```
+在 Supabase SQL 编辑器中执行 `database_migrations.sql` 文件中的 SQL 语句来创建必要的表和权限。
 
 ### OAuth 提供商配置
 
@@ -186,21 +111,29 @@ create policy "Users can delete own check-in records" on public.check_in_records
 3. 部署应用
 4. 更新 Supabase 项目的站点 URL 和重定向 URL 为生产环境域名
 
+## 文档
+
+详细的功能文档和技术说明请查看 [docs](./docs/) 文件夹：
+
+- [早睡早起打卡功能](./docs/check-in.md) - 睡眠周期记录功能的详细说明
+- [记账小助手功能](./docs/accounting.md) - 消费记录和财务管理功能说明
+- [数据库设计](./docs/database.md) - 完整的数据库表结构和 SQL 语句
+- [PWA 使用指南](./docs/pwa-guide.md) - 渐进式 Web 应用的安装和使用说明
+- [部署指南](./docs/deployment.md) - 项目部署和环境配置指南
+
 ## 开发指南
 
 ### 项目结构
 
 ```
 life-tools/
+├── docs/                       # 功能文档
 ├── public/                     # 静态资源
 ├── src/
 │   ├── app/                    # 应用路由和页面
 │   │   ├── auth/               # 认证相关路由
-│   │   │   └── callback/       # OAuth 回调处理
 │   │   ├── check-in/           # 睡眠记录功能页面
-│   │   │   ├── components/     # 页面专用组件
-│   │   │   ├── types.ts        # 类型定义
-│   │   │   └── page.tsx        # 主页面
+│   │   ├── accounting/         # 记账功能页面
 │   │   ├── globals.css         # 全局样式
 │   │   ├── layout.tsx          # 全局布局
 │   │   ├── page.tsx            # 首页
@@ -212,21 +145,14 @@ life-tools/
 │       ├── hooks/              # 自定义 hooks
 │       ├── stores/             # Zustand 状态管理
 │       ├── supabase.ts         # Supabase 客户端
-│       ├── supabase-server.ts  # 服务端 Supabase 客户端
 │       └── utils.ts            # 工具函数
-├── .env.local                  # 环境变量（本地）
+├── database_migrations.sql     # 数据库迁移脚本
 ├── components.json             # shadcn/ui 配置
 ├── next.config.ts              # Next.js 配置
 ├── package.json                # 项目依赖
 ├── tailwind.config.ts          # Tailwind CSS 配置
 └── tsconfig.json               # TypeScript 配置
 ```
-
-### 主要文件说明
-
-- **`src/app/check-in/types.ts`**: 定义睡眠记录相关的 TypeScript 类型
-- **`src/lib/stores/useAuthStore.ts`**: 用户认证和睡眠状态管理
-- **`src/lib/hooks/useCheckInRecords.ts`**: 睡眠记录数据获取和处理逻辑
 
 ### 开发命令
 

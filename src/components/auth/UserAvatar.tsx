@@ -2,6 +2,7 @@
 
 import { useAuthStore } from "@/lib/stores/useAuthStore";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -10,9 +11,16 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { LogOutIcon } from "lucide-react";
+import { useState } from "react";
 
 export function UserAvatar() {
-  const { user, profile, signOut } = useAuthStore();
+  const { user, profile, signOut, isLoading } = useAuthStore();
+  const [imageLoading, setImageLoading] = useState(true);
+  
+  // 如果正在加载用户信息，显示骨架屏
+  if (isLoading) {
+    return <Skeleton className="h-9 w-9 rounded-full" />;
+  }
   
   if (!user) return null;
   
@@ -28,10 +36,23 @@ export function UserAvatar() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="outline-none">
-        <Avatar className="h-9 w-9 cursor-pointer">
-          <AvatarImage src={avatarUrl || undefined} alt={displayName} />
-          <AvatarFallback>{initials}</AvatarFallback>
-        </Avatar>
+        <div className="relative">
+          {imageLoading && avatarUrl && (
+            <Skeleton className="absolute inset-0 h-9 w-9 rounded-full" />
+          )}
+          <Avatar className="h-9 w-9 cursor-pointer">
+            <AvatarImage 
+              src={avatarUrl || undefined} 
+              alt={displayName}
+              onLoad={() => setImageLoading(false)}
+              onError={() => setImageLoading(false)}
+              className={imageLoading ? "opacity-0" : "opacity-100 transition-opacity duration-200"}
+            />
+            <AvatarFallback className={imageLoading && avatarUrl ? "opacity-0" : "opacity-100"}>
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <div className="flex items-center justify-start gap-2 p-2">

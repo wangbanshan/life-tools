@@ -35,6 +35,37 @@ export type Database = {
           created_at?: string;
         };
       };
+      transactions: {
+        Row: {
+          id: string;
+          user_id: string;
+          date: string;
+          amount: number;
+          category: string;
+          description?: string;
+          created_at: string;
+          updated_at?: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          date: string;
+          amount: number;
+          category: string;
+          description?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          date?: string;
+          amount?: number;
+          category?: string;
+          description?: string;
+          updated_at?: string;
+        };
+      };
       profiles: {
         Row: {
           id: string;

@@ -1,0 +1,144 @@
+'use client';
+
+import { useState } from 'react';
+import { format } from 'date-fns';
+import { Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { 
+  useDailyTransactions, 
+  useDeleteTransaction, 
+  formatAmount 
+} from '@/lib/hooks/useAccountingRecords';
+import { Transaction } from '../types';
+
+interface AccountingListProps {
+  selectedDate: string;
+}
+
+export default function AccountingList({ selectedDate }: AccountingListProps) {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  
+  // 获取选中日期的消费记录
+  const { data: transactions, isLoading } = useDailyTransactions(selectedDate);
+  const deleteTransactionMutation = useDeleteTransaction();
+  
+  const handleDelete = async (transaction: Transaction) => {
+    // 确认删除
+    const confirmed = window.confirm(
+      `确定要删除这条消费记录吗？\n\n${transaction.category} - ${formatAmount(transaction.amount)}\n${transaction.description || '无备注'}`
+    );
+    
+    if (!confirmed) return;
+    
+    try {
+      setDeletingId(transaction.id);
+      await deleteTransactionMutation.mutateAsync(transaction.id);
+    } catch (error) {
+      console.error('删除失败:', error);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+  
+  // 计算当日总消费
+  const totalAmount = transactions?.reduce((sum, t) => sum + t.amount, 0) || 0;
+  
+  if (isLoading) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        加载中...
+      </div>
+    );
+  }
+  
+  if (!transactions || transactions.length === 0) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <p>当日暂无消费记录</p>
+        <p className="text-sm mt-2">点击左侧表单添加消费记录</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* 当日消费汇总 */}
+      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">当日总消费</p>
+          <p className="text-xl font-semibold text-red-600 dark:text-red-400">
+            {formatAmount(totalAmount)}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">消费笔数</p>
+          <p className="text-xl font-semibold">{transactions.length}</p>
+        </div>
+      </div>
+      
+      {/* 消费记录表格 */}
+      <div className="border rounded-lg overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>时间</TableHead>
+              <TableHead>类型</TableHead>
+              <TableHead>金额</TableHead>
+              <TableHead>备注</TableHead>
+              <TableHead className="w-[100px]">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {transactions.map((transaction) => (
+              <TableRow key={transaction.id}>
+                <TableCell className="font-medium">
+                  {format(new Date(transaction.created_at), 'HH:mm')}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="secondary">
+                    {transaction.category}
+                  </Badge>
+                </TableCell>
+                <TableCell className="font-semibold text-red-600 dark:text-red-400">
+                  {formatAmount(transaction.amount)}
+                </TableCell>
+                <TableCell className="max-w-[200px] truncate">
+                  {transaction.description || '-'}
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(transaction)}
+                      disabled={deletingId === transaction.id}
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      
+      {/* 删除状态提示 */}
+      {deleteTransactionMutation.isPending && (
+        <div className="text-center py-2 text-gray-500">
+          正在删除...
+        </div>
+      )}
+    </div>
+  );
+} 

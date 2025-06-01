@@ -10,12 +10,12 @@ export default function Home() {
   const { user } = useAuthStore();
   const router = useRouter();
   
-  const handleCheckInClick = (e: React.MouseEvent) => {
+  const handleJump = (e: React.MouseEvent, path: string) => {
     if (!user) {
       e.preventDefault();
       toast.error("请先点击右上角进行登录！");
     } else {
-      router.push("/check-in");
+      router.push(path);
     }
   };
   
@@ -37,9 +37,26 @@ export default function Home() {
           <CardContent>
             <Button 
               className="w-full" 
-              onClick={handleCheckInClick}
+              onClick={(e) => handleJump(e, "/check-in")}
             >
               立即打卡
+            </Button>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle>记账小助手</CardTitle>
+            <CardDescription>
+              轻松记录日常消费，智能统计分析，掌控财务状况
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              className="w-full" 
+              onClick={(e) => handleJump(e, "/accounting")}
+            >
+              开始记账
             </Button>
           </CardContent>
         </Card>
