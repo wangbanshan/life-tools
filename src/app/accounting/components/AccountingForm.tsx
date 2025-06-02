@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
+import { Settings2 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,28 +15,40 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { 
-  TRANSACTION_CATEGORIES, 
-  CreateTransactionPayload,
-  TransactionCategory 
-} from '../types';
+import { CreateTransactionPayload, TransactionCategory } from '../types';
 import { useAddTransaction } from '@/lib/hooks/useAccountingRecords';
+import { useTransactionCategories } from '@/lib/hooks/useTransactionCategories';
+import ManageCategoriesDialog from './ManageCategoriesDialog';
 
 interface AccountingFormProps {
   defaultDate?: string;
 }
 
+// 动态获取Lucide图标组件
+const getIconComponent = (iconName: string) => {
+  const toPascalCase = (str: string) => {
+    return str
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('');
+  };
+  
+  const IconComponent = (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>>)[toPascalCase(iconName)];
+  return IconComponent || LucideIcons.MoreHorizontal;
+};
+
 export default function AccountingForm({ defaultDate }: AccountingFormProps) {
   const [formData, setFormData] = useState<CreateTransactionPayload>({
     date: defaultDate || format(new Date(), 'yyyy-MM-dd'),
     amount: 0,
-    category: '餐饮',
+    category_id: '', // 改为使用category_id
     description: ''
   });
 
   const [amountInput, setAmountInput] = useState<string>('');
 
   const addTransactionMutation = useAddTransaction();
+  const { data: categories, isLoading: categoriesLoading } = useTransactionCategories();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +59,7 @@ export default function AccountingForm({ defaultDate }: AccountingFormProps) {
       return;
     }
     
-    if (!formData.category) {
+    if (!formData.category_id) {
       alert('请选择消费类型');
       return;
     }
@@ -57,7 +71,7 @@ export default function AccountingForm({ defaultDate }: AccountingFormProps) {
       setFormData({
         date: formData.date,
         amount: 0,
-        category: formData.category,
+        category_id: '',
         description: ''
       });
       setAmountInput(''); // 重置金额输入
@@ -77,8 +91,8 @@ export default function AccountingForm({ defaultDate }: AccountingFormProps) {
     setFormData({ ...formData, amount: numericValue });
   };
 
-  const handleCategoryChange = (value: TransactionCategory) => {
-    setFormData({ ...formData, category: value });
+  const handleCategoryChange = (value: string) => {
+    setFormData({ ...formData, category_id: value });
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,6 +101,24 @@ export default function AccountingForm({ defaultDate }: AccountingFormProps) {
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData({ ...formData, description: e.target.value });
+  };
+
+  // 渲染类型选项，包含图标
+  const renderCategoryOption = (category: TransactionCategory) => {
+    if (!category.icon) {
+      return <span>{category.name}</span>;
+    }
+
+    const IconComponent = getIconComponent(category.icon);
+    return (
+      <div className="flex items-center gap-2">
+        <IconComponent 
+          className="h-4 w-4" 
+          style={{ color: category.color || undefined }}
+        />
+        <span>{category.name}</span>
+      </div>
+    );
   };
 
   return (
@@ -122,23 +154,48 @@ export default function AccountingForm({ defaultDate }: AccountingFormProps) {
 
       {/* 消费类型选择 */}
       <div className="space-y-2">
-        <Label htmlFor="category">消费类型</Label>
-        <Select 
-          value={formData.category} 
-          onValueChange={handleCategoryChange}
-          required
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="请选择消费类型" />
-          </SelectTrigger>
-          <SelectContent>
-            {TRANSACTION_CATEGORIES.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="category">消费类型</Label>
+          <ManageCategoriesDialog>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1 text-xs"
+            >
+              <Settings2 className="h-3 w-3" />
+              管理
+            </Button>
+          </ManageCategoriesDialog>
+        </div>
+        
+        {categoriesLoading ? (
+          <div className="text-center py-2 text-gray-500 text-sm">
+            加载类型中...
+          </div>
+        ) : (
+          <Select 
+            value={formData.category_id} 
+            onValueChange={handleCategoryChange}
+            required
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="请选择消费类型">
+                {formData.category_id && categories && (() => {
+                  const selectedCategory = categories.find(cat => cat.id === formData.category_id);
+                  return selectedCategory ? renderCategoryOption(selectedCategory) : null;
+                })()}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {categories?.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {renderCategoryOption(category)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {/* 备注输入 */}
@@ -158,7 +215,7 @@ export default function AccountingForm({ defaultDate }: AccountingFormProps) {
       <Button 
         type="submit" 
         className="w-full"
-        disabled={addTransactionMutation.isPending}
+        disabled={addTransactionMutation.isPending || categoriesLoading}
       >
         {addTransactionMutation.isPending ? '添加中...' : '添加消费记录'}
       </Button>

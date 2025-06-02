@@ -9,13 +9,12 @@ import {
   DailyTransactionSummary,
   MonthlyTransactionSummary,
   CategoryBreakdown,
-  TRANSACTION_CATEGORIES,
   TransactionCategory
 } from '@/app/accounting/types';
 import { toast } from 'sonner';
 
 /**
- * 获取用户的所有消费记录
+ * 获取用户的所有消费记录（包含关联的类型信息）
  */
 export function useTransactions() {
   const { user } = useAuthStore();
@@ -28,7 +27,16 @@ export function useTransactions() {
       try {
         const { data, error } = await supabase
           .from('transactions')
-          .select('*')
+          .select(`
+            *,
+            transaction_categories (
+              id,
+              name,
+              icon,
+              color,
+              is_preset
+            )
+          `)
           .eq('user_id', user.id)
           .order('date', { ascending: false })
           .order('created_at', { ascending: false });
@@ -48,7 +56,7 @@ export function useTransactions() {
 }
 
 /**
- * 获取指定月份的消费记录
+ * 获取指定月份的消费记录（包含关联的类型信息）
  */
 export function useMonthlyTransactions(year: number, month: number) {
   const { user } = useAuthStore();
@@ -64,7 +72,16 @@ export function useMonthlyTransactions(year: number, month: number) {
         
         const { data, error } = await supabase
           .from('transactions')
-          .select('*')
+          .select(`
+            *,
+            transaction_categories (
+              id,
+              name,
+              icon,
+              color,
+              is_preset
+            )
+          `)
           .eq('user_id', user.id)
           .gte('date', startDate)
           .lte('date', endDate)
@@ -85,7 +102,7 @@ export function useMonthlyTransactions(year: number, month: number) {
 }
 
 /**
- * 获取指定日期的消费记录
+ * 获取指定日期的消费记录（包含关联的类型信息）
  */
 export function useDailyTransactions(date: string) {
   const { user } = useAuthStore();
@@ -98,7 +115,16 @@ export function useDailyTransactions(date: string) {
       try {
         const { data, error } = await supabase
           .from('transactions')
-          .select('*')
+          .select(`
+            *,
+            transaction_categories (
+              id,
+              name,
+              icon,
+              color,
+              is_preset
+            )
+          `)
           .eq('user_id', user.id)
           .eq('date', date)
           .order('created_at', { ascending: false });
@@ -166,28 +192,34 @@ export function useMonthlyStatistics(year: number, month: number) {
     const transactionCount = transactions.length;
     
     // 按类型分组统计
-    const categoryMap = new Map<TransactionCategory, { amount: number; count: number }>();
-    
-    TRANSACTION_CATEGORIES.forEach(category => {
-      categoryMap.set(category, { amount: 0, count: 0 });
-    });
+    const categoryMap = new Map<string, { 
+      category: TransactionCategory; 
+      amount: number; 
+      count: number; 
+    }>();
     
     transactions.forEach(transaction => {
-      const category = transaction.category;
-      const current = categoryMap.get(category) || { amount: 0, count: 0 };
+      const categoryInfo = transaction.transaction_categories;
+      if (!categoryInfo) return; // 跳过没有类型信息的记录
+      
+      const categoryId = categoryInfo.id;
+      const current = categoryMap.get(categoryId) || { 
+        category: categoryInfo, 
+        amount: 0, 
+        count: 0 
+      };
       current.amount += transaction.amount;
       current.count += 1;
-      categoryMap.set(category, current);
+      categoryMap.set(categoryId, current);
     });
     
-    const categoryBreakdown: CategoryBreakdown[] = Array.from(categoryMap.entries())
-      .map(([category, data]) => ({
+    const categoryBreakdown: CategoryBreakdown[] = Array.from(categoryMap.values())
+      .map(({ category, amount, count }) => ({
         category,
-        amount: data.amount,
-        count: data.count,
-        percentage: totalAmount > 0 ? (data.amount / totalAmount) * 100 : 0
+        amount,
+        count,
+        percentage: totalAmount > 0 ? (amount / totalAmount) * 100 : 0
       }))
-      .filter(item => item.amount > 0) // 只显示有消费的类型
       .sort((a, b) => b.amount - a.amount); // 按金额降序排列
     
     // 计算每日汇总
@@ -251,10 +283,19 @@ export function useAddTransaction() {
             user_id: user.id,
             date: payload.date,
             amount: payload.amount,
-            category: payload.category,
+            category_id: payload.category_id, // 使用category_id而不是category
             description: payload.description || null
           })
-          .select()
+          .select(`
+            *,
+            transaction_categories (
+              id,
+              name,
+              icon,
+              color,
+              is_preset
+            )
+          `)
           .single();
         
         if (error) throw error;
@@ -313,7 +354,16 @@ export function useUpdateTransaction() {
           .update(payload)
           .eq('id', id)
           .eq('user_id', user.id)
-          .select()
+          .select(`
+            *,
+            transaction_categories (
+              id,
+              name,
+              icon,
+              color,
+              is_preset
+            )
+          `)
           .single();
         
         if (error) throw error;

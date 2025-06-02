@@ -13,6 +13,17 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { 
   useDailyTransactions, 
   useDeleteTransaction, 
@@ -25,27 +36,21 @@ interface AccountingListProps {
 }
 
 export default function AccountingList({ selectedDate }: AccountingListProps) {
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingTransaction, setDeletingTransaction] = useState<Transaction | null>(null);
   
   // 获取选中日期的消费记录
   const { data: transactions, isLoading } = useDailyTransactions(selectedDate);
   const deleteTransactionMutation = useDeleteTransaction();
   
-  const handleDelete = async (transaction: Transaction) => {
-    // 确认删除
-    const confirmed = window.confirm(
-      `确定要删除这条消费记录吗？\n\n${transaction.category} - ${formatAmount(transaction.amount)}\n${transaction.description || '无备注'}`
-    );
-    
-    if (!confirmed) return;
+  const handleDeleteConfirm = async () => {
+    if (!deletingTransaction) return;
     
     try {
-      setDeletingId(transaction.id);
-      await deleteTransactionMutation.mutateAsync(transaction.id);
+      await deleteTransactionMutation.mutateAsync(deletingTransaction.id);
+      setDeletingTransaction(null); // 关闭对话框
     } catch (error) {
       console.error('删除失败:', error);
-    } finally {
-      setDeletingId(null);
+      // 错误处理已经在mutation的onError中处理了
     }
   };
   
@@ -105,7 +110,8 @@ export default function AccountingList({ selectedDate }: AccountingListProps) {
                 </TableCell>
                 <TableCell>
                   <Badge variant="secondary">
-                    {transaction.category}
+                    {/* 显示类型名称，使用关联的类型信息 */}
+                    {transaction.transaction_categories?.name || '未知类型'}
                   </Badge>
                 </TableCell>
                 <TableCell className="font-semibold text-red-600 dark:text-red-400">
@@ -115,30 +121,56 @@ export default function AccountingList({ selectedDate }: AccountingListProps) {
                   {transaction.description || '-'}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(transaction)}
-                      disabled={deletingId === transaction.id}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={deleteTransactionMutation.isPending}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => setDeletingTransaction(transaction)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>确认删除？</AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                          <div className="space-y-2">
+                            <span>您确定要删除这条消费记录吗？此操作无法撤销。</span>
+                            {deletingTransaction && (
+                              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md text-sm">
+                                <div><strong>类型：</strong>{deletingTransaction.transaction_categories?.name || '未知类型'}</div>
+                                <div><strong>金额：</strong>{formatAmount(deletingTransaction.amount)}</div>
+                                {deletingTransaction.description && (
+                                  <div><strong>备注：</strong>{deletingTransaction.description}</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setDeletingTransaction(null)}>
+                          取消
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleDeleteConfirm}
+                          disabled={deleteTransactionMutation.isPending}
+                          className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                        >
+                          {deleteTransactionMutation.isPending ? '删除中...' : '确认删除'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-      
-      {/* 删除状态提示 */}
-      {deleteTransactionMutation.isPending && (
-        <div className="text-center py-2 text-gray-500">
-          正在删除...
-        </div>
-      )}
     </div>
   );
 } 

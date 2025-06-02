@@ -105,7 +105,7 @@ export default function AccountingPage() {
                 <p className="text-gray-600 dark:text-gray-400">主要消费</p>
                 <p className="text-xl font-semibold">
                   {monthlyStats.categoryBreakdown.length > 0 
-                    ? monthlyStats.categoryBreakdown[0].category
+                    ? monthlyStats.categoryBreakdown[0].category.name
                     : '暂无数据'}
                 </p>
               </div>
