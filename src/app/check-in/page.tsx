@@ -4,6 +4,7 @@
 import CheckInForm from './components/CheckInForm';
 import CheckInCalendar from './components/CheckInCalendar';
 import CheckInHistory from './components/CheckInHistory';
+import SleepChart from './components/SleepChart';
 import LoadingSpinner from '@/components/ui/loading-spinner';
 import { useDailyRecords } from '@/lib/hooks/useCheckInRecords';
 
@@ -52,6 +53,9 @@ export default function CheckInPage() {
 
       {/* 日历组件 */}
       <CheckInCalendar dailyRecords={dailyRecords} />
+
+      {/* 睡眠数据分析图表 */}
+      <SleepChart />
 
       {/* 历史记录组件 */}
       <CheckInHistory dailyRecords={dailyRecords} />
