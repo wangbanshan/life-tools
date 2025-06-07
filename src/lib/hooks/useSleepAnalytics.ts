@@ -16,6 +16,11 @@ export interface SleepChartData {
   sleepTimeFormatted: string | null; // 格式化的入睡时间
   wakeTimeFormatted: string | null; // 格式化的起床时间
   durationFormatted: string; // 格式化的睡眠时长
+  sleepCycles?: Array<{ // 多段睡眠详情（可选）
+    startTime: string;
+    endTime: string;
+    duration: string;
+  }>;
 }
 
 // 将时间戳转换为小数小时格式（用于图表Y轴）
@@ -29,7 +34,7 @@ function timestampToHourDecimal(timestamp: number): number {
 // 将小数小时转换为格式化时间字符串
 function hourDecimalToTime(hourDecimal: number): string {
   const hours = Math.floor(hourDecimal);
-  const minutes = Math.round((hourDecimal - hours) * 60);
+  const minutes = Math.floor((hourDecimal - hours) * 60); // 保持与时长计算一致，使用Math.floor
   return format(new Date(0, 0, 0, hours, minutes), 'HH:mm');
 }
 
@@ -42,7 +47,7 @@ function calculateSleepDurationHours(startTime: number, endTime: number): number
 // 格式化睡眠时长
 function formatSleepDuration(hours: number): string {
   const wholeHours = Math.floor(hours);
-  const minutes = Math.round((hours - wholeHours) * 60);
+  const minutes = Math.floor((hours - wholeHours) * 60); // 使用Math.floor避免四舍五入偏差
   
   if (wholeHours > 0) {
     return `${wholeHours}小时${minutes}分钟`;
@@ -106,6 +111,11 @@ function processDailyRecord(record: DailyRecord): {
   sleepTimeFormatted: string | null;
   wakeTimeFormatted: string | null;
   durationFormatted: string;
+  sleepCycles?: Array<{
+    startTime: string;
+    endTime: string;
+    duration: string;
+  }>;
 } {
   // 获取完整的睡眠周期
   const completedCycles = record.sleepCycles.filter(cycle => cycle.isCompleted && cycle.endTime);
@@ -121,24 +131,36 @@ function processDailyRecord(record: DailyRecord): {
     };
   }
 
-  // 如果有多个睡眠周期，选择最长的作为主要睡眠
+  // 计算总睡眠时长（累加所有完整周期）
+  const totalDuration = completedCycles.reduce((total, cycle) => {
+    return total + calculateSleepDurationHours(cycle.startTime, cycle.endTime!);
+  }, 0);
+
+  // 选择最长的睡眠周期作为主要睡眠，用于确定入睡和起床时间点
   const mainCycle = completedCycles.reduce((longest, current) => {
     const currentDuration = calculateSleepDurationHours(current.startTime, current.endTime!);
     const longestDuration = calculateSleepDurationHours(longest.startTime, longest.endTime!);
     return currentDuration > longestDuration ? current : longest;
   });
 
-  const duration = calculateSleepDurationHours(mainCycle.startTime, mainCycle.endTime!);
   const sleepTime = timestampToHourDecimal(mainCycle.startTime);
   const wakeTime = timestampToHourDecimal(mainCycle.endTime!);
 
+  // 格式化所有睡眠周期的详细信息
+  const sleepCyclesDetails = completedCycles.map(cycle => ({
+    startTime: hourDecimalToTime(timestampToHourDecimal(cycle.startTime)),
+    endTime: hourDecimalToTime(timestampToHourDecimal(cycle.endTime!)),
+    duration: formatSleepDuration(calculateSleepDurationHours(cycle.startTime, cycle.endTime!))
+  }));
+
   return {
-    duration,
+    duration: totalDuration, // 使用累加的总时长
     sleepTime,
     wakeTime,
     sleepTimeFormatted: hourDecimalToTime(sleepTime),
     wakeTimeFormatted: hourDecimalToTime(wakeTime),
-    durationFormatted: formatSleepDuration(duration)
+    durationFormatted: formatSleepDuration(totalDuration),
+    sleepCycles: completedCycles.length > 1 ? sleepCyclesDetails : undefined // 只在多段睡眠时包含
   };
 }
 
