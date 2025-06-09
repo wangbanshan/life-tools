@@ -6,6 +6,7 @@ import CheckInCalendar from './components/CheckInCalendar';
 import CheckInHistory from './components/CheckInHistory';
 import SleepChart from './components/SleepChart';
 import LoadingSpinner from '@/components/ui/loading-spinner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDailyRecords } from '@/lib/hooks/useCheckInRecords';
 
 export default function CheckInPage() {
@@ -48,17 +49,29 @@ export default function CheckInPage() {
     <div className="container mx-auto py-6 px-4 space-y-8 max-w-4xl">
       <h1 className="text-3xl font-bold text-center md:text-left">早睡早起打卡</h1>
 
-      {/* 打卡表单组件 */}
+      {/* 核心交互区域 - 打卡表单组件 */}
       <CheckInForm />
 
-      {/* 日历组件 */}
-      <CheckInCalendar dailyRecords={dailyRecords} />
+      {/* 多视图切换区域 */}
+      <Tabs defaultValue="calendar" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="calendar">日历视图</TabsTrigger>
+          <TabsTrigger value="history">历史记录</TabsTrigger>
+          <TabsTrigger value="chart">睡眠统计</TabsTrigger>
+          </TabsList>
+        
+        <TabsContent value="calendar" className="mt-6">
+          <CheckInCalendar dailyRecords={dailyRecords} />
+        </TabsContent>
 
-      {/* 睡眠数据分析图表 */}
-      <SleepChart />
-
-      {/* 历史记录组件 */}
-      <CheckInHistory dailyRecords={dailyRecords} />
+        <TabsContent value="history" className="mt-6">
+          <CheckInHistory dailyRecords={dailyRecords} />
+        </TabsContent>
+        
+        <TabsContent value="chart" className="mt-6">
+          <SleepChart />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

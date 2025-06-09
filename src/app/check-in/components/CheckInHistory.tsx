@@ -129,14 +129,26 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
                 查看你的睡眠记录和睡眠质量统计
               </CardDescription>
             </div>
-            <Button
-              onClick={handleCreateRecord}
-              size="sm"
-              className="w-full sm:w-auto"
-            >
-              <Plus className="size-4 mr-2" />
-              补录记录
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button
+                onClick={handleCreateRecord}
+                size="sm"
+                className="w-full sm:w-auto"
+              >
+                <Plus className="size-4 mr-2" />
+                补录记录
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
+                onClick={handleExportData}
+                disabled={sortedCycles.length === 0}
+              >
+                <Download className="size-4 mr-2" />
+                导出数据
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -237,20 +249,10 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
             </>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
+        <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             数据已安全保存在您的账户中，可跨设备访问
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full sm:w-auto"
-            onClick={handleExportData}
-            disabled={sortedCycles.length === 0}
-          >
-            <Download className="size-4 mr-2" />
-            导出数据
-          </Button>
         </CardFooter>
       </Card>
 
