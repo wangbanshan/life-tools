@@ -4,11 +4,23 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameMonth, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Moon, Clock, AlertCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, Moon, Clock, AlertCircle, Trash2 } from "lucide-react";
 
 import { DailyRecord } from "../types";
+import { useDeleteCheckInRecord } from "@/lib/hooks/useCheckInRecords";
 
 interface CheckInCalendarProps {
   dailyRecords: DailyRecord[];
@@ -17,6 +29,9 @@ interface CheckInCalendarProps {
 export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
+
+  // Hook for deleting records
+  const deleteRecordMutation = useDeleteCheckInRecord();
 
   // 日历相关函数
   const handlePrevMonth = () => {
@@ -206,16 +221,92 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
                 </h4>
                 
                 {selectedRecord.unpairedSleepStarts.map((record) => (
-                  <div key={record.id} className="flex items-center gap-2 p-2 bg-amber-50 rounded-md">
-                    <Moon className="size-4 text-amber-600" />
-                    <span className="text-sm">孤立的睡眠开始: {record.formattedTime}</span>
+                  <div key={record.id} className="flex items-center justify-between p-2 bg-amber-50 rounded-md">
+                    <div className="flex items-center gap-2">
+                      <Moon className="size-4 text-amber-600" />
+                      <span className="text-sm">孤立的睡眠开始: {record.formattedTime}</span>
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 hover:bg-red-50"
+                          disabled={deleteRecordMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <span className="sr-only">删除记录</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>确认删除记录？</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            您确定要删除这条打卡记录吗？此操作无法撤销。
+                            <br />
+                            <br />
+                            <strong>类型：</strong> 睡眠开始
+                            <br />
+                            <strong>时间：</strong> {record.formattedTime}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>取消</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => deleteRecordMutation.mutate(record.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                            disabled={deleteRecordMutation.isPending}
+                          >
+                            {deleteRecordMutation.isPending ? "删除中..." : "确认删除"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 ))}
                 
                 {selectedRecord.unpairedSleepEnds.map((record) => (
-                  <div key={record.id} className="flex items-center gap-2 p-2 bg-amber-50 rounded-md">
-                    <Clock className="size-4 text-amber-600" />
-                    <span className="text-sm">孤立的睡眠结束: {record.formattedTime}</span>
+                  <div key={record.id} className="flex items-center justify-between p-2 bg-amber-50 rounded-md">
+                    <div className="flex items-center gap-2">
+                      <Clock className="size-4 text-amber-600" />
+                      <span className="text-sm">孤立的睡眠结束: {record.formattedTime}</span>
+                    </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 hover:bg-red-50"
+                          disabled={deleteRecordMutation.isPending}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <span className="sr-only">删除记录</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>确认删除记录？</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            您确定要删除这条打卡记录吗？此操作无法撤销。
+                            <br />
+                            <br />
+                            <strong>类型：</strong> 睡眠结束
+                            <br />
+                            <strong>时间：</strong> {record.formattedTime}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>取消</AlertDialogCancel>
+                          <AlertDialogAction 
+                            onClick={() => deleteRecordMutation.mutate(record.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                            disabled={deleteRecordMutation.isPending}
+                          >
+                            {deleteRecordMutation.isPending ? "删除中..." : "确认删除"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 ))}
               </div>

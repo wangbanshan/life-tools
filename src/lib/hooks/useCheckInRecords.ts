@@ -274,4 +274,176 @@ export function useAddCheckInRecord() {
       toast.error(`打卡失败: ${error.message}`);
     }
   });
+}
+
+/**
+ * 更新睡眠周期的参数接口
+ */
+interface UpdateSleepCyclePayload {
+  id_start: string;
+  id_end?: string;
+  new_start_timestamp: number;
+  new_end_timestamp: number;
+}
+
+/**
+ * 更新睡眠周期
+ * 同时更新 sleep_start 和 sleep_end 记录的时间戳
+ */
+export function useUpdateSleepCycle() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  
+  return useMutation({
+    mutationFn: async (payload: UpdateSleepCyclePayload): Promise<void> => {
+      if (!user) throw new Error('用户未登录');
+      
+      try {
+        // 同时更新两条记录
+        const updates = [];
+        
+        // 更新 sleep_start 记录
+        updates.push(
+          supabase
+            .from('check_in_records')
+            .update({ timestamp: payload.new_start_timestamp })
+            .eq('id', payload.id_start)
+        );
+        
+        // 更新 sleep_end 记录
+        if (payload.id_end) {
+          updates.push(
+            supabase
+              .from('check_in_records')
+              .update({ timestamp: payload.new_end_timestamp })
+              .eq('id', payload.id_end)
+          );
+        }
+        
+        const results = await Promise.all(updates);
+        
+        // 检查是否有错误
+        results.forEach(result => {
+          if (result.error) throw result.error;
+        });
+        
+      } catch (error) {
+        console.error('更新睡眠周期失败:', error);
+        throw new Error('更新睡眠周期失败，请稍后重试');
+      }
+    },
+    onSuccess: () => {
+      // 刷新数据
+      queryClient.invalidateQueries({
+        queryKey: ['check-in-records']
+      });
+      
+      toast.success('更新成功！');
+    },
+    onError: (error) => {
+      toast.error(`更新失败: ${error.message}`);
+    }
+  });
+}
+
+/**
+ * 创建睡眠周期的参数接口
+ */
+interface CreateSleepCyclePayload {
+  start_timestamp: number;
+  end_timestamp: number;
+}
+
+/**
+ * 创建睡眠周期
+ * 一次性插入 sleep_start 和 sleep_end 两条记录
+ */
+export function useCreateSleepCycle() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  
+  return useMutation({
+    mutationFn: async (payload: CreateSleepCyclePayload): Promise<void> => {
+      if (!user) throw new Error('用户未登录');
+      
+      try {
+        // 创建两条记录的数据
+        const records = [
+          {
+            id: uuidv4(),
+            user_id: user.id,
+            timestamp: payload.start_timestamp,
+            type: 'sleep_start' as const,
+          },
+          {
+            id: uuidv4(),
+            user_id: user.id,
+            timestamp: payload.end_timestamp,
+            type: 'sleep_end' as const,
+          }
+        ];
+        
+        // 一次性插入两条记录
+        const { error } = await supabase
+          .from('check_in_records')
+          .insert(records);
+        
+        if (error) throw error;
+        
+      } catch (error) {
+        console.error('创建睡眠周期失败:', error);
+        throw new Error('创建睡眠周期失败，请稍后重试');
+      }
+    },
+    onSuccess: () => {
+      // 刷新数据
+      queryClient.invalidateQueries({
+        queryKey: ['check-in-records']
+      });
+      
+      toast.success('补录成功！');
+    },
+    onError: (error) => {
+      toast.error(`补录失败: ${error.message}`);
+    }
+  });
+}
+
+/**
+ * 删除单条打卡记录
+ * 用于删除异常或错误的打卡记录
+ */
+export function useDeleteCheckInRecord() {
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  
+  return useMutation({
+    mutationFn: async (recordId: string): Promise<void> => {
+      if (!user) throw new Error('用户未登录');
+      
+      try {
+        const { error } = await supabase
+          .from('check_in_records')
+          .delete()
+          .eq('id', recordId);
+        
+        if (error) throw error;
+        
+      } catch (error) {
+        console.error('删除记录失败:', error);
+        throw new Error('删除记录失败，请稍后重试');
+      }
+    },
+    onSuccess: () => {
+      // 刷新数据
+      queryClient.invalidateQueries({
+        queryKey: ['check-in-records', user?.id]
+      });
+      
+      toast.success('记录删除成功！');
+    },
+    onError: (error) => {
+      toast.error(`删除失败: ${error.message}`);
+    }
+  });
 } 
