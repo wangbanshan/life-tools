@@ -187,9 +187,12 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
               <button
                 key={dateStr}
                 className={cn(
-                  "h-12 rounded-md flex flex-col items-center justify-center relative",
-                  isToday ? "border-2 border-primary" : "border border-border",
-                  isSelected ? "bg-muted" : "",
+                  "h-12 rounded-md flex flex-col items-center justify-center relative transition-colors border border-border",
+                  isSelected
+                    ? "border-2 border-blue-600"
+                    : isToday
+                    ? "border-slate-400"
+                    : "border-border hover:bg-muted",
                   !isSameMonth(day, currentMonth) ? "opacity-40" : ""
                 )}
                 onClick={() => handleSelectDate(day)}
@@ -225,8 +228,8 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
         {/* 选中日期详情 */}
         {selectedRecord && (
           <div className="mt-6 p-4 border rounded-md">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-medium">{format(parseISO(selectedRecord.date), "yyyy年MM月dd日")} 睡眠记录</h3>
+            <div className="flex justify-between items-center mb-3 h-8">
+              <h3 className="font-medium">{format(parseISO(selectedRecord.date), "yyyy年MM月dd日")}</h3>
               {!isFutureDate && (
                 <Button variant="outline" size="sm" onClick={handleCreateRecord}>
                   <Plus className="size-4 mr-2" />
@@ -401,7 +404,7 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
         {/* 如果选中的日期没有记录 */}
         {!selectedRecord && (
           <div className="mt-6 p-4 border rounded-md">
-            <div className="flex justify-between items-center mb-3">
+            <div className="flex justify-between items-center mb-3 h-8">
               <h3 className="font-medium">{format(parseISO(selectedDate), "yyyy年MM月dd日")}</h3>
               {!isFutureDate && (
                 <Button variant="outline" size="sm" onClick={handleCreateRecord}>
@@ -426,6 +429,7 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
       record={editingRecord || undefined}
       onSubmit={handleSubmit}
       isSubmitting={updateSleepCycle.isPending || createSleepCycle.isPending}
+      targetDate={selectedDate}
     />
     </>
   );

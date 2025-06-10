@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { format } from "date-fns";
+import { format, parseISO, subDays } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 
 import {
@@ -66,6 +66,7 @@ interface SleepRecordFormDialogProps {
   record?: SleepCycle;
   onSubmit: (data: { startTime: number; endTime: number }) => void;
   isSubmitting: boolean;
+  targetDate?: string;
 }
 
 export default function SleepRecordFormDialog({
@@ -73,7 +74,8 @@ export default function SleepRecordFormDialog({
   onOpenChange,
   record,
   onSubmit,
-  isSubmitting
+  isSubmitting,
+  targetDate
 }: SleepRecordFormDialogProps) {
   
   const form = useForm<FormData>({
@@ -105,21 +107,29 @@ export default function SleepRecordFormDialog({
         });
       } else {
         // 补录模式：设置默认值
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        const todayMorning = new Date();
-        todayMorning.setHours(7, 0, 0, 0);
+        let sleepDate = new Date();
+        let wakeUpDate = new Date();
+
+        if (targetDate) {
+          // 使用传入的 targetDate 作为起床日期
+          wakeUpDate = parseISO(targetDate);
+          // 计算入睡日期为起床日期的前一天
+          sleepDate = subDays(wakeUpDate, 1);
+        } else {
+          // 如果没有 targetDate，使用原来的默认逻辑
+          sleepDate.setDate(sleepDate.getDate() - 1);
+          wakeUpDate.setHours(7, 0, 0, 0);
+        }
         
         form.reset({
-          startDate: yesterday,
+          startDate: sleepDate,
           startTime: "23:00",
-          endDate: todayMorning,
+          endDate: wakeUpDate,
           endTime: "07:00",
         });
       }
     }
-  }, [record, isOpen, form]);
+  }, [record, isOpen, targetDate, form]);
 
   const handleFormSubmit = (values: FormData) => {
     // 合并日期和时间为时间戳
