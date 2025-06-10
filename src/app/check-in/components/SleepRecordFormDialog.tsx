@@ -28,6 +28,9 @@ export default function SleepRecordFormDialog({
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
 
+  // 获取今天的日期字符串，用于限制日期选择
+  const today = format(new Date(), "yyyy-MM-dd");
+
   // 当record prop变化时，初始化表单
   useEffect(() => {
     if (record) {
@@ -107,6 +110,7 @@ export default function SleepRecordFormDialog({
               <Input
                 id="start-date"
                 type="date"
+                max={today}
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 required
@@ -130,6 +134,7 @@ export default function SleepRecordFormDialog({
               <Input
                 id="end-date"
                 type="date"
+                max={today}
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 required

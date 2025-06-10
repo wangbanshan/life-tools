@@ -15,12 +15,13 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from "@/components/ui/alert-dialog";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameMonth, parseISO } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isSameMonth, parseISO, isAfter, isToday } from "date-fns";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Moon, Clock, AlertCircle, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Moon, Clock, AlertCircle, Trash2, Pencil, Plus } from "lucide-react";
 
-import { DailyRecord } from "../types";
-import { useDeleteCheckInRecord } from "@/lib/hooks/useCheckInRecords";
+import { DailyRecord, SleepCycle } from "../types";
+import { useDeleteCheckInRecord, useUpdateSleepCycle, useCreateSleepCycle } from "@/lib/hooks/useCheckInRecords";
+import SleepRecordFormDialog from "./SleepRecordFormDialog";
 
 interface CheckInCalendarProps {
   dailyRecords: DailyRecord[];
@@ -32,6 +33,14 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
 
   // Hook for deleting records
   const deleteRecordMutation = useDeleteCheckInRecord();
+
+  // Dialog 状态管理
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<SleepCycle | null>(null);
+
+  // Hooks for edit and create functionality
+  const updateSleepCycle = useUpdateSleepCycle();
+  const createSleepCycle = useCreateSleepCycle();
 
   // 日历相关函数
   const handlePrevMonth = () => {
@@ -65,6 +74,46 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
     return dailyRecords.find(record => record.date === selectedDate);
   };
 
+  // 打开编辑对话框
+  const handleEditRecord = (cycle: SleepCycle) => {
+    setEditingRecord(cycle);
+    setIsDialogOpen(true);
+  };
+
+  // 打开补录对话框
+  const handleCreateRecord = () => {
+    setEditingRecord(null);
+    setIsDialogOpen(true);
+  };
+
+  // 处理表单提交
+  const handleSubmit = (data: { startTime: number; endTime: number }) => {
+    if (editingRecord) {
+      // 编辑模式
+      updateSleepCycle.mutate({
+        id_start: editingRecord.id_start,
+        id_end: editingRecord.id_end,
+        new_start_timestamp: data.startTime,
+        new_end_timestamp: data.endTime
+      }, {
+        onSuccess: () => {
+          setIsDialogOpen(false);
+          setEditingRecord(null);
+        }
+      });
+    } else {
+      // 补录模式
+      createSleepCycle.mutate({
+        start_timestamp: data.startTime,
+        end_timestamp: data.endTime
+      }, {
+        onSuccess: () => {
+          setIsDialogOpen(false);
+        }
+      });
+    }
+  };
+
   // 判断某天是否有睡眠记录
   const hasSleepRecord = (record: DailyRecord | undefined) => {
     if (!record) return false;
@@ -89,7 +138,11 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
   const days = getDaysInMonth();
   const today = format(new Date(), "yyyy-MM-dd");
 
+  // 判断选中的日期是否是未来日期
+  const isFutureDate = isAfter(parseISO(selectedDate), new Date()) || isToday(parseISO(selectedDate));
+
   return (
+    <>
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
@@ -172,7 +225,15 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
         {/* 选中日期详情 */}
         {selectedRecord && (
           <div className="mt-6 p-4 border rounded-md">
-            <h3 className="font-medium mb-3">{format(parseISO(selectedRecord.date), "yyyy年MM月dd日")} 睡眠记录</h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-medium">{format(parseISO(selectedRecord.date), "yyyy年MM月dd日")} 睡眠记录</h3>
+              {!isFutureDate && (
+                <Button variant="outline" size="sm" onClick={handleCreateRecord}>
+                  <Plus className="size-4 mr-2" />
+                  补录
+                </Button>
+              )}
+            </div>
             
             {/* 完整的睡眠周期 */}
             {selectedRecord.sleepCycles.length > 0 && (
@@ -196,15 +257,28 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
                         </div>
                       )}
                     </div>
-                    <div className="text-right">
-                      {cycle.isCompleted ? (
-                        <Badge variant="default" className="bg-green-500">
-                          {cycle.duration}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-amber-600 border-amber-600">
-                          进行中
-                        </Badge>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        {cycle.isCompleted ? (
+                          <Badge variant="default" className="bg-green-500">
+                            {cycle.duration}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-amber-600 border-amber-600">
+                            进行中
+                          </Badge>
+                        )}
+                      </div>
+                      {!isFutureDate && cycle.isCompleted && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditRecord(cycle)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Pencil className="size-4" />
+                          <span className="sr-only">编辑记录</span>
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -327,7 +401,15 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
         {/* 如果选中的日期没有记录 */}
         {!selectedRecord && (
           <div className="mt-6 p-4 border rounded-md">
-            <h3 className="font-medium mb-2">{format(parseISO(selectedDate), "yyyy年MM月dd日")}</h3>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-medium">{format(parseISO(selectedDate), "yyyy年MM月dd日")}</h3>
+              {!isFutureDate && (
+                <Button variant="outline" size="sm" onClick={handleCreateRecord}>
+                  <Plus className="size-4 mr-2" />
+                  补录
+                </Button>
+              )}
+            </div>
             <div className="text-center py-4 text-muted-foreground">
               <Moon className="size-8 mx-auto mb-2 opacity-50" />
               <p>该日期暂无睡眠记录</p>
@@ -336,5 +418,15 @@ export default function CheckInCalendar({ dailyRecords }: CheckInCalendarProps) 
         )}
       </CardContent>
     </Card>
+
+    {/* 睡眠记录表单对话框 */}
+    <SleepRecordFormDialog
+      isOpen={isDialogOpen}
+      onOpenChange={setIsDialogOpen}
+      record={editingRecord || undefined}
+      onSubmit={handleSubmit}
+      isSubmitting={updateSleepCycle.isPending || createSleepCycle.isPending}
+    />
+    </>
   );
 }

@@ -1,30 +1,19 @@
 "use client";
-
-import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Moon, Download, Clock, AlertCircle, Pencil, Plus } from "lucide-react";
+import { Moon, Download, Clock, AlertCircle } from "lucide-react";
 
-import { DailyRecord, SleepCycle } from "../types";
-import SleepRecordFormDialog from "./SleepRecordFormDialog";
-import { useUpdateSleepCycle, useCreateSleepCycle } from "@/lib/hooks/useCheckInRecords";
+import { DailyRecord } from "../types";
 
 interface CheckInHistoryProps {
   dailyRecords: DailyRecord[];
 }
 
 export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
-  // Dialog 状态管理
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<SleepCycle | null>(null);
-
-  // Hooks
-  const updateSleepCycle = useUpdateSleepCycle();
-  const createSleepCycle = useCreateSleepCycle();
 
   // 展平所有睡眠周期以便在表格中显示
   const allSleepCycles = dailyRecords.flatMap(daily => 
@@ -36,46 +25,6 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
 
   // 按开始时间降序排序
   const sortedCycles = allSleepCycles.sort((a, b) => b.startTime - a.startTime);
-
-  // 打开编辑对话框
-  const handleEditRecord = (cycle: SleepCycle) => {
-    setEditingRecord(cycle);
-    setIsDialogOpen(true);
-  };
-
-  // 打开补录对话框
-  const handleCreateRecord = () => {
-    setEditingRecord(null);
-    setIsDialogOpen(true);
-  };
-
-  // 处理表单提交
-  const handleSubmit = (data: { startTime: number; endTime: number }) => {
-    if (editingRecord) {
-      // 编辑模式
-      updateSleepCycle.mutate({
-        id_start: editingRecord.id_start,
-        id_end: editingRecord.id_end,
-        new_start_timestamp: data.startTime,
-        new_end_timestamp: data.endTime
-      }, {
-        onSuccess: () => {
-          setIsDialogOpen(false);
-          setEditingRecord(null);
-        }
-      });
-    } else {
-      // 补录模式
-      createSleepCycle.mutate({
-        start_timestamp: data.startTime,
-        end_timestamp: data.endTime
-      }, {
-        onSuccess: () => {
-          setIsDialogOpen(false);
-        }
-      });
-    }
-  };
 
   // 导出睡眠历史数据为JSON
   const handleExportData = () => {
@@ -119,8 +68,7 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
   const incompleteCycles = sortedCycles.filter(cycle => !cycle.isCompleted);
 
   return (
-    <>
-      <Card className="w-full">
+    <Card className="w-full">
         <CardHeader>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -130,14 +78,6 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
               </CardDescription>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <Button
-                onClick={handleCreateRecord}
-                size="sm"
-                className="w-full sm:w-auto"
-              >
-                <Plus className="size-4 mr-2" />
-                补录记录
-              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -182,7 +122,6 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
                       <TableHead>起床时间</TableHead>
                       <TableHead>睡眠时长</TableHead>
                       <TableHead>状态</TableHead>
-                      <TableHead>操作</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -225,19 +164,6 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell>
-                          {cycle.isCompleted && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditRecord(cycle)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Pencil className="size-4" />
-                              <span className="sr-only">编辑记录</span>
-                            </Button>
-                          )}
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -255,15 +181,5 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
           </p>
         </CardFooter>
       </Card>
-
-      {/* 睡眠记录表单对话框 */}
-      <SleepRecordFormDialog
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        record={editingRecord || undefined}
-        onSubmit={handleSubmit}
-        isSubmitting={updateSleepCycle.isPending || createSleepCycle.isPending}
-      />
-    </>
   );
 }
