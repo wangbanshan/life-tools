@@ -132,34 +132,34 @@ function StatisticsCards({ statistics }: { statistics: StatisticsData }) {
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-      <div className="p-3 bg-muted rounded-lg text-center">
-        <div className="text-sm font-bold" style={{ color: chartConfig.duration.color }}>
-          {formatHours(statistics.averageDuration)}
+    <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="p-2 bg-muted rounded-lg text-center">
+          <div className="text-base font-bold" style={{ color: chartConfig.duration.color }}>
+            {formatHours(statistics.averageDuration)}
+          </div>
+          <div className="text-xs text-muted-foreground">平均睡眠</div>
         </div>
-        <div className="text-xs text-muted-foreground">平均睡眠</div>
-      </div>
-      
-      <div className="p-3 bg-muted rounded-lg text-center">
-        <div className="text-sm font-bold" style={{ color: chartConfig.duration.color }}>
-          {statistics.totalSleepDays}天
+              
+        <div className="p-2 bg-muted rounded-lg text-center">
+          <div className="text-base font-bold" style={{ color: chartConfig.duration.color }}>
+            {statistics.totalSleepDays}天
+          </div>
+          <div className="text-xs text-muted-foreground">睡眠天数</div>
         </div>
-        <div className="text-xs text-muted-foreground">睡眠天数</div>
-      </div>
-      
-      <div className="p-3 bg-muted rounded-lg text-center">
-        <div className="text-sm font-bold" style={{ color: chartConfig.duration.color }}>
-          {formatTime(statistics.averageSleepTime)}
+        
+        <div className="p-2 bg-muted rounded-lg text-center">
+          <div className="text-base font-bold" style={{ color: chartConfig.duration.color }}>
+            {formatTime(statistics.averageSleepTime)}
+          </div>
+          <div className="text-xs text-muted-foreground">平均入睡</div>
         </div>
-        <div className="text-xs text-muted-foreground">平均入睡</div>
-      </div>
-      
-      <div className="p-3 bg-muted rounded-lg text-center">
-        <div className="text-sm font-bold" style={{ color: chartConfig.duration.color }}>
-          {formatTime(statistics.averageWakeTime)}
+        
+        <div className="p-2 bg-muted rounded-lg text-center">
+          <div className="text-base font-bold" style={{ color: chartConfig.duration.color }}>
+            {formatTime(statistics.averageWakeTime)}
+          </div>
+          <div className="text-xs text-muted-foreground">平均起床</div>
         </div>
-        <div className="text-xs text-muted-foreground">平均起床</div>
-      </div>
     </div>
   );
 }
@@ -224,14 +224,14 @@ export default function SleepChart() {
           </div>
           
           {/* 时间范围选择按钮 - 移动端优化 */}
-          <div className="grid grid-cols-2 md:flex md:flex-wrap gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {dateRangeOptions.map((option) => (
               <Button
                 key={option.value}
                 variant={selectedRange === option.value ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSelectedRange(option.value)}
-                className="text-xs h-8 flex-1 md:flex-none"
+                className="text-xs h-8"
               >
                 {option.label}
               </Button>
@@ -266,7 +266,7 @@ export default function SleepChart() {
                   tick={{ fontSize: isMobile ? 10 : 12 }}
                   tickLine={false}
                   axisLine={false}
-                  interval={isMobile ? 'preserveStartEnd' : 0}
+                  interval="preserveStartEnd"
                 />
                 
                 {/* Y轴（左） - 睡眠时长 */}

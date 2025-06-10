@@ -2,10 +2,9 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+
 import { format } from "date-fns";
-import { Moon, Download, Clock, AlertCircle } from "lucide-react";
+import { Moon, Clock, AlertCircle } from "lucide-react";
 
 import { DailyRecord } from "../types";
 
@@ -26,42 +25,7 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
   // 按开始时间降序排序
   const sortedCycles = allSleepCycles.sort((a, b) => b.startTime - a.startTime);
 
-  // 导出睡眠历史数据为JSON
-  const handleExportData = () => {
-    try {
-      const exportData = {
-        exportDate: new Date().toISOString(),
-        totalRecords: sortedCycles.length,
-        sleepCycles: sortedCycles.map(cycle => ({
-          date: cycle.date,
-          startTime: new Date(cycle.startTime).toISOString(),
-          endTime: cycle.endTime ? new Date(cycle.endTime).toISOString() : null,
-          duration: cycle.duration || null,
-          isCompleted: cycle.isCompleted
-        })),
-        dailyRecords: dailyRecords
-      };
 
-      const dataStr = JSON.stringify(exportData, null, 2);
-      const blob = new Blob([dataStr], { type: "application/json" });
-
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `睡眠记录_${new Date().toISOString().split("T")[0]}.json`;
-
-      document.body.appendChild(link);
-      link.click();
-
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success("睡眠记录导出成功！");
-    } catch (error) {
-      console.error("导出数据失败:", error);
-      toast.error("导出数据失败，请重试！");
-    }
-  };
 
   // 计算统计信息
   const completedCycles = sortedCycles.filter(cycle => cycle.isCompleted);
@@ -77,18 +41,7 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
                 查看你的睡眠记录和睡眠质量统计
               </CardDescription>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full sm:w-auto"
-                onClick={handleExportData}
-                disabled={sortedCycles.length === 0}
-              >
-                <Download className="size-4 mr-2" />
-                导出数据
-              </Button>
-            </div>
+
           </div>
         </CardHeader>
         <CardContent>
@@ -97,18 +50,18 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
           ) : (
             <>
               {/* 统计信息 */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="p-4 bg-muted rounded-lg">
-                  <div className="text-2xl font-bold text-primary">{sortedCycles.length}</div>
-                  <div className="text-sm text-muted-foreground">总睡眠记录</div>
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                <div className="p-3 bg-muted rounded-lg text-center">
+                  <div className="text-lg font-bold text-primary">{sortedCycles.length}</div>
+                  <div className="text-xs text-muted-foreground">总睡眠记录</div>
                 </div>
-                <div className="p-4 bg-muted rounded-lg">
-                  <div className="text-2xl font-bold text-green-600">{completedCycles.length}</div>
-                  <div className="text-sm text-muted-foreground">完整睡眠周期</div>
+                <div className="p-3 bg-muted rounded-lg text-center">
+                  <div className="text-lg font-bold text-green-600">{completedCycles.length}</div>
+                  <div className="text-xs text-muted-foreground whitespace-nowrap">完整睡眠周期</div>
                 </div>
-                <div className="p-4 bg-muted rounded-lg">
-                  <div className="text-2xl font-bold text-amber-600">{incompleteCycles.length}</div>
-                  <div className="text-sm text-muted-foreground">未完成记录</div>
+                <div className="p-3 bg-muted rounded-lg text-center">
+                  <div className="text-lg font-bold text-amber-600">{incompleteCycles.length}</div>
+                  <div className="text-xs text-muted-foreground">未完成记录</div>
                 </div>
               </div>
 
@@ -175,11 +128,6 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
             </>
           )}
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-muted-foreground">
-            数据已安全保存在您的账户中，可跨设备访问
-          </p>
-        </CardFooter>
       </Card>
   );
 }
