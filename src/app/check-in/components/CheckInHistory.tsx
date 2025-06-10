@@ -1,5 +1,5 @@
 "use client";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
@@ -120,7 +120,7 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
                       </TableRow>
                     ))}
                   </TableBody>
-                  <TableCaption>
+                  <TableCaption className="mb-2">
                     共 {sortedCycles.length} 条睡眠记录，其中 {completedCycles.length} 条已完成
                   </TableCaption>
                 </Table>
