@@ -37,7 +37,7 @@ export default function CheckInHistory({ dailyRecords }: CheckInHistoryProps) {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <CardTitle>睡眠历史</CardTitle>
-              <CardDescription>
+              <CardDescription className="mt-2">
                 查看你的睡眠记录和睡眠质量统计
               </CardDescription>
             </div>

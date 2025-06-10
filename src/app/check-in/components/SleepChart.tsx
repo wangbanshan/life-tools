@@ -220,7 +220,7 @@ export default function SleepChart() {
         <div className="space-y-4">
           <div>
             <CardTitle>睡眠数据分析</CardTitle>
-            <CardDescription>可视化展示您的睡眠模式和趋势</CardDescription>
+            <CardDescription className="mt-2">可视化展示您的睡眠模式和趋势</CardDescription>
           </div>
           
           {/* 时间范围选择按钮 - 移动端优化 */}

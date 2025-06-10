@@ -82,7 +82,7 @@ export default function CheckInForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col items-center justify-center text-center py-8 space-y-6">
+        <div className="flex flex-col items-center justify-center text-center py-6 space-y-6">
           <div className="space-y-1">
             <div className="text-4xl font-bold tabular-nums">{currentTime}</div>
             <div className="text-sm text-muted-foreground">{currentDate}</div>
@@ -140,16 +140,6 @@ export default function CheckInForm() {
               )}
               {isSleeping ? "我睡醒了" : "我准备睡了"}
             </Button>
-          </div>
-
-          {/* 提示文本 */}
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              {isSleeping 
-                ? "点击按钮记录您的起床时间" 
-                : "点击按钮开始记录睡眠"
-              }
-            </p>
           </div>
         </div>
       </CardContent>
