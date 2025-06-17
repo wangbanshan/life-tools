@@ -54,9 +54,6 @@ export default function AccountingList({ selectedDate }: AccountingListProps) {
     }
   };
   
-  // 计算当日总消费
-  const totalAmount = transactions?.reduce((sum, t) => sum + t.amount, 0) || 0;
-  
   if (isLoading) {
     return (
       <div className="text-center py-8 text-gray-500">
@@ -76,20 +73,6 @@ export default function AccountingList({ selectedDate }: AccountingListProps) {
 
   return (
     <div className="space-y-4">
-      {/* 当日消费汇总 */}
-      <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">当日总消费</p>
-          <p className="text-xl font-semibold text-red-600 dark:text-red-400">
-            {formatAmount(totalAmount)}
-          </p>
-        </div>
-        <div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">消费笔数</p>
-          <p className="text-xl font-semibold">{transactions.length}</p>
-        </div>
-      </div>
-      
       {/* 消费记录表格 */}
       <div className="border rounded-lg overflow-hidden">
         <Table>

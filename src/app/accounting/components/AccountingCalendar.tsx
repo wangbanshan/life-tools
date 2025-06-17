@@ -87,41 +87,41 @@ export default function AccountingCalendar({
       <div className="flex items-center justify-between mb-4">
         <Button 
           variant="outline" 
-          size="sm" 
+          size="icon" 
           onClick={handlePrevMonth}
-          className="h-8 w-8 p-0"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
         
-        <h3 className="text-lg font-semibold">
+        <h3 className="text-lg font-medium">
           {format(currentMonth, 'yyyy年MM月')}
         </h3>
         
         <Button 
           variant="outline" 
-          size="sm" 
+          size="icon" 
           onClick={handleNextMonth}
-          className="h-8 w-8 p-0"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
       
       {/* 星期头部 */}
-      <div className="grid grid-cols-7 gap-1 mb-2">
-        {['一', '二', '三', '四', '五', '六', '日'].map((day) => (
-          <div key={day} className="h-8 flex items-center justify-center text-sm font-medium text-gray-500">
-            {day}
-          </div>
-        ))}
+      <div className="grid grid-cols-7 gap-1 text-center mb-2">
+        <div className="text-sm font-medium">日</div>
+        <div className="text-sm font-medium">一</div>
+        <div className="text-sm font-medium">二</div>
+        <div className="text-sm font-medium">三</div>
+        <div className="text-sm font-medium">四</div>
+        <div className="text-sm font-medium">五</div>
+        <div className="text-sm font-medium">六</div>
       </div>
       
       {/* 日历网格 */}
       <div className="grid grid-cols-7 gap-1">
         {/* 填充空白天数 */}
         {Array.from({ length: calendarData.paddingDays }).map((_, index) => (
-          <div key={`empty-${index}`} className="h-16 sm:h-20" />
+          <div key={`empty-${index}`} className="h-12" />
         ))}
         
         {/* 日期方块 */}
@@ -129,38 +129,27 @@ export default function AccountingCalendar({
           const dayExpense = getDayExpense(date);
           const isSelected = isDaySelected(date);
           const isTodayDate = isToday(date);
+          const hasExpense = dayExpense > 0;
           
           return (
             <button
               key={format(date, 'yyyy-MM-dd')}
               onClick={() => handleDateClick(date)}
               className={cn(
-                "h-14 sm:h-16 p-1 border rounded-lg transition-colors hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500",
-                {
-                  "bg-blue-100 border-blue-300 dark:bg-blue-900 dark:border-blue-700": isSelected,
-                  "bg-yellow-50 border-yellow-200 dark:bg-yellow-900 dark:border-yellow-800": isTodayDate && !isSelected,
-                  "border-gray-200 dark:border-gray-700": !isSelected && !isTodayDate
-                }
+                "h-12 rounded-md flex flex-col items-center justify-center relative transition-colors border border-border",
+                isSelected
+                  ? "border-2 border-blue-600"
+                  : isTodayDate
+                  ? "border-slate-400"
+                  : "border-border hover:bg-muted"
               )}
             >
-              <div className="h-full flex flex-col justify-between">
-                {/* 日期数字 */}
-                <div className={cn(
-                  "text-sm font-medium",
-                  {
-                    "text-blue-600 dark:text-blue-400": isSelected,
-                    "text-yellow-600 dark:text-yellow-400": isTodayDate && !isSelected,
-                    "text-gray-900 dark:text-gray-100": !isSelected && !isTodayDate
-                  }
-                )}>
-                  {format(date, 'd')}
-                </div>
-                
-                {/* 消费金额 */}
-                {dayExpense > 0 && (
-                  <div className="text-xs text-red-600 dark:text-red-400 font-medium">
+              <div className="flex flex-col items-center justify-center h-full">
+                <span className="text-sm">{format(date, 'd')}</span>
+                {hasExpense && (
+                  <span className="text-xs text-red-600 font-medium mt-0.5">
                     ¥{dayExpense.toFixed(0)}
-                  </div>
+                  </span>
                 )}
               </div>
             </button>
