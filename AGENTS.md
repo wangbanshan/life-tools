@@ -6,6 +6,6 @@ Before making substantial visual changes, use the Product Design plugin's `get-c
 
 When implementing from a selected generated mock, treat that image as the source of truth for layout, component anatomy, density, spacing, color, typography, visible content, and hierarchy.
 
-后续完成可预览功能或验收时，默认使用固定域名 `https://<preview-domain>`；该域名通过 Nginx 反代到 systemd user 常驻的 `life-tools-vite.service`，不要再使用 `trycloudflare.com` quick tunnel 作为默认验收链接。
+后续完成可预览功能或验收时，默认使用固定域名 `https://<preview-domain>`；该域名由 Cloudflare Pages 项目 `life-tools` 提供，不再依赖本地 systemd / Nginx，也不要使用 `trycloudflare.com` quick tunnel 作为默认验收链接。
 
-登录注册采用 Supabase Auth 的简化方案：界面只收用户名和密码，内部映射为 `<username>@life-tools.local`，用户资料写入 `public.profiles`；第一版不做邮箱、确认密码、找回密码、手机号或 OAuth。
+登录注册采用 Supabase Auth 的简化方案：界面只收用户名和密码，内部映射为 `<username>@<auth-email-domain>`，用户资料写入 `public.profiles`；第一版不做邮箱、确认密码、找回密码、手机号或 OAuth。
