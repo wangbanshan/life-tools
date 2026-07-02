@@ -26,10 +26,13 @@
 ## Supabase 登录
 
 - 前端只展示用户名和密码，不展示邮箱，不做确认密码。
-- Supabase Auth 仍需要 email/password，因此内部使用 `<username>@life-tools.local` 映射。
+- Supabase Auth 仍需要 email/password，因此内部使用 `<username>@life-tools.12161216.xyz` 映射。
 - 用户资料表和触发器 SQL 在 `supabase/migrations/202607020001_create_profiles.sql`。
 - 环境变量参考 `.env.example`，需要配置 `VITE_SUPABASE_URL` 和 `VITE_SUPABASE_ANON_KEY`。
+- 当前 Supabase Project URL：`https://yweklyvxuqipmiymzcih.supabase.co`。
+- `create_profiles` migration 已应用到 Supabase 项目。
 - Supabase 项目中需要关闭邮箱确认，否则注册后不会直接获得可用 session。
+- 如果注册测试返回 `email rate limit exceeded`，说明 Supabase 仍在尝试发确认邮件或已触发邮件限流，需要关闭 Email confirmation 或等待限流窗口。
 
 ## 视觉实现说明
 
@@ -54,19 +57,34 @@ http://127.0.0.1:5173/
 
 ## 固定预览地址
 
-当前已使用 systemd user service 常驻运行 Vite：
-
-```text
-life-tools-vite.service -> http://127.0.0.1:5173/
-```
-
-Nginx 已将固定域名反代到本地 Vite 端口：
+当前部署目标已切换到 Cloudflare Pages：
 
 ```text
 https://tools.12161216.xyz
 ```
 
-Cloudflare DNS 中 `tools.12161216.xyz` 为 proxied A 记录，指向当前服务器。后续验收默认使用这个固定域名，不再使用 `trycloudflare.com` quick tunnel。
+Cloudflare Pages 项目：`life-tools`，默认域名：`life-tools-ax8.pages.dev`。`tools.12161216.xyz` 已改为 proxied CNAME 指向 Pages。后续验收默认使用固定域名，不再依赖本地 systemd / Nginx。
+
+## 自动部署
+
+仓库包含 GitHub Actions workflow：`.github/workflows/deploy-cloudflare-pages.yml`。
+
+推送 `main` 后会执行：
+
+```bash
+npm ci
+npm run build
+npx wrangler@4 pages deploy dist --project-name life-tools --branch main --commit-dirty=true
+```
+
+需要在 GitHub 仓库配置这些 Actions secrets：
+
+```text
+CLOUDFLARE_ACCOUNT_ID=79b7c5574412cfc1de4cc40c8daab13f
+CLOUDFLARE_API_TOKEN=<Cloudflare Pages deploy token>
+VITE_SUPABASE_URL=https://yweklyvxuqipmiymzcih.supabase.co
+VITE_SUPABASE_KEY=<Supabase publishable key>
+```
 
 ## 验收
 

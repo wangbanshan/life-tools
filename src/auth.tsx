@@ -160,6 +160,10 @@ export function AuthProvider({ children }: PropsWithChildren) {
           throw new Error("注册失败，请稍后再试");
         }
 
+        if (!data.session) {
+          throw new Error("注册已创建，但 Supabase 邮箱确认尚未关闭，暂时无法直接登录");
+        }
+
         const user = toPublicUser(data.user);
         setCurrentUser(user);
         return user;
