@@ -154,6 +154,15 @@ a {
   margin-bottom: 42px;
 }
 
+.hero-kicker {
+  margin-bottom: 14px;
+  color: var(--lt-sage-dark);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .hero-title {
   max-width: 800px;
   color: var(--lt-text);

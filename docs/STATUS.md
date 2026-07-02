@@ -5,8 +5,8 @@
 ## 已完成
 - 已搭好 React + Vite + TypeScript 前端项目。
 - 已接入 TanStack Router、TanStack Query、Mantine、@tabler/icons-react。
-- 首页已完成：顶部 logo / 头像入口、主标题 / 副标题、4 个工具入口、卡片点击占位弹窗。
-- 账户入口已改为 Supabase 用户名密码登录 / 注册 / 退出；当前需要配置 Supabase 环境变量后才能真实登录。
+- 首页已完成：顶部 logo / 头像入口、主标题 / 副标题、4 个工具入口、卡片点击功能预览弹窗。
+- 账户入口已改为 Supabase 用户名密码登录 / 注册 / 退出；已可通过 Supabase 环境变量连接真实登录。
 - 桌面端已适配：工具卡为横向长卡片，宽屏 3 + 1，中等宽度 2 列。
 - 移动端已适配：顶部更紧凑，工具入口保持 2 列，点击区域适合手指操作。
 - logo 当前为 icon-only SVG + 页面文字字标，SVG 文件在 `public/life-tools-logo.svg`。

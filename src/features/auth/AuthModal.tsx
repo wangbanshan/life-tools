@@ -11,7 +11,7 @@ import {
 } from "@mantine/core";
 import { IconAlertCircle, IconLock, IconUser } from "@tabler/icons-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { useAuth } from "./auth";
+import { useAuth } from "./auth-context";
 
 type AuthMode = "login" | "register";
 
@@ -59,7 +59,7 @@ export function AuthModal({ opened, onClose }: AuthModalProps) {
     const normalizedUsername = username.trim().toLowerCase();
 
     if (!isConfigured) {
-      return "Supabase 尚未配置";
+      return "账号服务尚未配置";
     }
 
     if (!usernamePattern.test(normalizedUsername)) {
@@ -107,7 +107,7 @@ export function AuthModal({ opened, onClose }: AuthModalProps) {
       centered
       radius="xl"
       size="sm"
-      title="欢迎回来"
+      title="进入 life-tools"
       overlayProps={{ blur: 3, backgroundOpacity: 0.18 }}
       classNames={{
         content: "auth-modal-content",
@@ -135,8 +135,8 @@ export function AuthModal({ opened, onClose }: AuthModalProps) {
             />
             <Text className="auth-helper">
               {mode === "login"
-                ? "用用户名和密码进入 life-tools。"
-                : "注册一个轻量账号，后续数据会跟着这个用户名走。"}
+                ? "使用你的用户名继续，数据会回到同一个工具台。"
+                : "创建一个轻量账号，用来保存和同步你的生活工具数据。"}
             </Text>
           </div>
 
@@ -147,7 +147,7 @@ export function AuthModal({ opened, onClose }: AuthModalProps) {
               icon={<IconAlertCircle size={18} />}
               radius="lg"
             >
-              Supabase 尚未配置
+              账号服务尚未配置
             </Alert>
           ) : null}
 
@@ -191,7 +191,7 @@ export function AuthModal({ opened, onClose }: AuthModalProps) {
               loading={isSubmitting}
               disabled={!isConfigured}
             >
-              {mode === "login" ? "登录" : "注册并登录"}
+              {mode === "login" ? "登录" : "创建账号"}
             </Button>
           </Group>
         </Stack>

@@ -1,5 +1,5 @@
 source visual truth path:
-- /home/jianwu/Workspaces/life-tools/design-reference-home-v2.png
+- removed after product cleanup; current UI source of truth is the implemented homepage
 
 implementation screenshot path:
 - skipped by request. The user explicitly said screenshot QA is not needed.
