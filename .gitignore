@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.npm-cache/
+.npmrc
+
+.env
+.env.local
+.env.*.local
+
+*.log
+.DS_Store
+
+.vite/
+coverage/
