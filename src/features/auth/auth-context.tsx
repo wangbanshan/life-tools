@@ -6,7 +6,7 @@ import {
   useState,
   type PropsWithChildren,
 } from "react";
-import { getInternalAuthEmail, isSupabaseConfigured, supabase } from "./supabaseClient";
+import { getInternalAuthEmail, isSupabaseConfigured, supabase } from "../../lib/supabase/client";
 
 export type User = {
   id: string;
@@ -64,9 +64,7 @@ function toPublicUser(authUser: {
   user_metadata?: { username?: unknown };
 }): User {
   const metadataUsername =
-    typeof authUser.user_metadata?.username === "string"
-      ? authUser.user_metadata.username
-      : "";
+    typeof authUser.user_metadata?.username === "string" ? authUser.user_metadata.username : "";
   const emailUsername = authUser.email?.split("@")[0] ?? "";
   const username = normalizeUsername(metadataUsername || emailUsername);
 

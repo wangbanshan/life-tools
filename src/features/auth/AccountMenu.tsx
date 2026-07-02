@@ -1,6 +1,6 @@
 import { ActionIcon, Menu, Text, Tooltip } from "@mantine/core";
 import { IconLogout, IconSettings, IconUserCircle } from "@tabler/icons-react";
-import { useAuth } from "./auth";
+import { useAuth } from "./auth-context";
 
 type AccountMenuProps = {
   onLoginClick: () => void;
@@ -17,7 +17,7 @@ export function AccountMenu({ onLoginClick }: AccountMenuProps) {
           variant="subtle"
           radius="xl"
           size={52}
-          aria-label="打开登录窗口"
+          aria-label="登录或注册"
           onClick={onLoginClick}
         >
           <IconUserCircle size={34} stroke={1.6} />
@@ -29,7 +29,7 @@ export function AccountMenu({ onLoginClick }: AccountMenuProps) {
   return (
     <Menu position="bottom-end" shadow="md" width={236} radius="lg">
       <Menu.Target>
-        <Tooltip label="个人入口" withArrow>
+        <Tooltip label="个人工作台" withArrow>
           <ActionIcon
             className="avatar-button avatar-button-active"
             variant="subtle"
@@ -45,11 +45,11 @@ export function AccountMenu({ onLoginClick }: AccountMenuProps) {
         <Menu.Label>当前账号</Menu.Label>
         <div className="account-card">
           <Text className="account-name">{currentUser.username}</Text>
-          <Text className="account-email">已登录</Text>
+          <Text className="account-email">在线同步中</Text>
         </div>
         <Menu.Divider />
         <Menu.Item leftSection={<IconSettings size={17} />} disabled>
-          账户信息
+          账号设置
         </Menu.Item>
         <Menu.Item leftSection={<IconLogout size={17} />} color="apricot" onClick={logout}>
           退出登录
