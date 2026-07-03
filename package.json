@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "dev:tunnel": "cloudflared tunnel --config /home/jianwu/.cloudflared/life-tools-dev.yml run"
   },
   "dependencies": {
     "@mantine/core": "^8.3.9",

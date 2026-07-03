@@ -1,5 +1,6 @@
 import { Box, Container, Text, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { AuthModal } from "../auth/AuthModal";
 import { useAuth } from "../auth/auth-context";
@@ -13,10 +14,16 @@ export function HomePage() {
   const [authOpened, authModal] = useDisclosure(false);
   const [activeTool, setActiveTool] = useState<ToolItem | null>(null);
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   const handleToolClick = (tool: ToolItem) => {
     if (tool.requiresAuth && !isAuthenticated) {
       authModal.open();
+      return;
+    }
+
+    if (tool.path) {
+      void navigate({ to: tool.path });
       return;
     }
 

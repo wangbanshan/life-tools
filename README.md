@@ -41,6 +41,15 @@
 - Supabase 项目中需要关闭邮箱确认，否则注册后不会直接获得可用 session。
 - 如果注册测试返回 `email rate limit exceeded`，说明 Supabase 仍在尝试发确认邮件或已触发邮件限流，需要关闭 Email confirmation 或等待限流窗口。
 
+
+## 资产管理数据
+
+- 前端已接入 `public.asset_accounts`。登录且 Supabase 配置存在时，资产账户会按当前用户 `user_id` 从数据库读取和保存。
+- 资产管理需要登录；未登录进入 `/assets` 会先打开登录弹窗，不再展示本地 mock 数据。
+- 资产账户表和 RLS SQL 在 `supabase/migrations/202607030001_create_asset_accounts.sql`。
+- profiles 安全补丁在 `supabase/migrations/202607030002_harden_profiles_security.sql`。
+- 当前远端验证结果：`public.asset_accounts` 已应用到 Supabase；匿名访问受 RLS 限制，登录后可按当前用户读写。
+
 ## 视觉实现说明
 
 - 不增加右侧摘要/统计卡片；首页只负责进入功能。

@@ -1,4 +1,5 @@
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
+import { AssetManagementPage } from "../features/assets/AssetManagementPage";
 import { HomePage } from "../features/home/HomePage";
 
 const rootRoute = createRootRoute({
@@ -11,7 +12,13 @@ const indexRoute = createRoute({
   component: HomePage,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute]);
+const assetsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/assets",
+  component: AssetManagementPage,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, assetsRoute]);
 
 export const router = createRouter({ routeTree });
 

@@ -15,15 +15,17 @@ export type ToolItem = {
   accent: ToolAccent;
   Icon: Icon;
   requiresAuth?: boolean;
+  path?: "/assets";
 };
 
 export const tools: ToolItem[] = [
   {
-    title: "资产台账",
+    title: "资产管理",
     description: "账户、余额和现金流放进同一张视图。",
     detail: "资产台账会聚合账户、存款、支出和余额变化，方便你回看一段时间里的真实财务状态。",
     accent: "sage",
     Icon: IconWallet,
+    path: "/assets",
   },
   {
     title: "订阅日历",
