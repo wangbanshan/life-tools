@@ -7,6 +7,7 @@ import {
   IconUsers,
   IconWallet,
 } from "@tabler/icons-react";
+import { useNavigate } from "@tanstack/react-router";
 import { type ComponentType, useState } from "react";
 import { AccountMenu } from "./AccountMenu";
 import { AuthModal } from "./AuthModal";
@@ -20,6 +21,7 @@ type ToolItem = {
   accent: ToolAccent;
   Icon: ComponentType<{ size?: number; stroke?: number }>;
   requiresAuth?: boolean;
+  path?: "/assets";
 };
 
 const tools: ToolItem[] = [
@@ -28,6 +30,7 @@ const tools: ToolItem[] = [
     description: "记录账户、存款和支出",
     accent: "sage",
     Icon: IconWallet,
+    path: "/assets",
   },
   {
     title: "订阅管理",
@@ -54,10 +57,16 @@ export function App() {
   const [authOpened, authModal] = useDisclosure(false);
   const [activeTool, setActiveTool] = useState<ToolItem | null>(null);
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   const handleToolClick = (tool: ToolItem) => {
     if (tool.requiresAuth && !isAuthenticated) {
       authModal.open();
+      return;
+    }
+
+    if (tool.path) {
+      void navigate({ to: tool.path });
       return;
     }
 
