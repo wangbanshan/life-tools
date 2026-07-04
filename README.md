@@ -35,12 +35,8 @@
 - 前端只展示用户名和密码，不展示邮箱，不做确认密码。
 - Supabase Auth 仍需要 email/password，因此内部使用 `<username>@<auth-email-domain>` 映射。
 - 用户资料表和触发器 SQL 在 `supabase/migrations/202607020001_create_profiles.sql`。
-- 环境变量参考 `.env.example`，需要配置 `VITE_SUPABASE_URL` 和 `VITE_SUPABASE_ANON_KEY`。
-- 当前 Supabase Project URL：`<your Supabase Project URL>`。
-- `create_profiles` migration 已应用到 Supabase 项目。
+- 环境变量参考 `.env.example`，需要配置 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY` 和 `VITE_AUTH_EMAIL_DOMAIN`。
 - Supabase 项目中需要关闭邮箱确认，否则注册后不会直接获得可用 session。
-- 如果注册测试返回 `email rate limit exceeded`，说明 Supabase 仍在尝试发确认邮件或已触发邮件限流，需要关闭 Email confirmation 或等待限流窗口。
-
 
 ## 资产管理数据
 
@@ -48,13 +44,12 @@
 - 资产管理需要登录；未登录进入 `/assets` 会先打开登录弹窗，不再展示本地 mock 数据。
 - 资产账户表和 RLS SQL 在 `supabase/migrations/202607030001_create_asset_accounts.sql`。
 - profiles 安全补丁在 `supabase/migrations/202607030002_harden_profiles_security.sql`。
-- 当前远端验证结果：`public.asset_accounts` 已应用到 Supabase；匿名访问受 RLS 限制，登录后可按当前用户读写。
 
 ## 视觉实现说明
 
 - 不增加右侧摘要/统计卡片；首页只负责进入功能。
 - 图标使用 `@tabler/icons-react`。
-- Logo 拆成 icon-only SVG + HTML 文本字标：`life-tools-logo.svg` 只包含房子图标，`life-tools` 由 CSS 控制字号、字重和间距，避免 SVG 字体/裁切问题。
+- Logo 拆成 icon-only SVG + HTML 文本字标。
 - 图标背景不使用切图，使用 CSS 渐变、内阴影和轻边框实现；icon tile 已调成更方正的圆角矩形，桌面卡片为图标左、文字中、箭头右下的横向结构。
 - 阶段记录放在 `docs/STATUS.md`，设计验收记录放在 `docs/design-qa.md`。
 
@@ -70,16 +65,6 @@ npm run dev
 ```text
 http://127.0.0.1:5173/
 ```
-
-## 固定预览地址
-
-当前部署目标已切换到 Cloudflare Pages：
-
-```text
-https://<preview-domain>
-```
-
-Cloudflare Pages 项目：`life-tools`，默认域名：`<cloudflare-pages-domain>`。`<preview-domain>` 已改为 proxied CNAME 指向 Pages。后续验收默认使用固定域名，不再依赖本地 systemd / Nginx。
 
 ## 自动部署
 
@@ -104,10 +89,8 @@ VITE_SUPABASE_KEY=<Supabase publishable key>
 
 ## 验收
 
-按当前约定，不做截图/像素级验收。已执行的检查：
+常用检查：
 
 ```bash
 npm run build
 ```
-
-同时使用 `curl` 检查本地地址、Nginx 本机 HTTPS 和固定域名是否可访问。

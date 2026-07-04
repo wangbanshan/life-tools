@@ -12,8 +12,6 @@
 - logo 当前为 icon-only SVG + 页面文字字标，SVG 文件在 `public/life-tools-logo.svg`。
 - 图标背景目前用 CSS 渐变和圆角实现，没有额外切图素材。
 - 新增 Supabase profiles 表迁移：`supabase/migrations/202607020001_create_profiles.sql`。
-- Supabase 项目：`<your Supabase project ref>`，Project URL：`<your Supabase Project URL>`。
-- `create_profiles` migration 已应用到 Supabase。
 
 ## 当前视觉方向
 - 暖白 / 奶油色背景。
@@ -28,17 +26,12 @@ npm run dev
 ```
 
 本地访问：`http://127.0.0.1:5173/`
-固定预览：`https://<preview-domain>`（Cloudflare Pages）
 
 ## 验证情况
 - `npm run build` 已通过。
 - Supabase 登录改造后已重新执行 `npm run build`，构建通过。
 - 本轮不做截图验收。
 - 部署目标已切换到 Cloudflare Pages 项目 `life-tools`。
-- `<preview-domain>` 已改为 proxied CNAME 指向 `<cloudflare-pages-domain>`，后续验收使用固定域名。
-- 本地 `.env.local` 已配置 Supabase URL 和 publishable key。
-- 内部邮箱映射域名已从 `life-tools.local` 改为 `<auth-email-domain>`，避免 Supabase 拒绝 `.local` 邮箱。
-- 当前 Supabase Auth 注册测试返回 `email rate limit exceeded`，需要在控制台关闭 Email confirmation 或等待限流窗口后复测。
 
 - GitHub Actions workflow 已添加：`.github/workflows/deploy-cloudflare-pages.yml`；需要在 GitHub Secrets 中手动配置 Cloudflare token 后才能自动部署。
 

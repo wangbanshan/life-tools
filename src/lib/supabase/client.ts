@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim();
 const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_KEY)?.trim();
+const authEmailDomain = import.meta.env.VITE_AUTH_EMAIL_DOMAIN?.trim() || "example.invalid";
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
@@ -20,5 +21,5 @@ export const supabase = (() => {
 })();
 
 export function getInternalAuthEmail(username: string) {
-  return `${username.trim().toLowerCase()}@<auth-email-domain>`;
+  return `${username.trim().toLowerCase()}@${authEmailDomain}`;
 }
