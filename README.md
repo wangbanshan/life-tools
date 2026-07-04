@@ -85,6 +85,7 @@ CLOUDFLARE_ACCOUNT_ID=<your Cloudflare Account ID>
 CLOUDFLARE_API_TOKEN=<Cloudflare Pages deploy token>
 VITE_SUPABASE_URL=<your Supabase Project URL>
 VITE_SUPABASE_KEY=<Supabase publishable key>
+VITE_AUTH_EMAIL_DOMAIN=<internal auth email domain>
 ```
 
 ## 验收
