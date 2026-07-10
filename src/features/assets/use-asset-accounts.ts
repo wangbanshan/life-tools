@@ -20,6 +20,7 @@ export function useAssetAccounts(currentUser: User | null) {
   const shouldUseRemote = Boolean(isSupabaseConfigured && supabase && currentUser);
   const [accounts, setAccounts] = useState<AssetAccount[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export function useAssetAccounts(currentUser: User | null) {
       setAccounts([]);
       setError(null);
       setIsLoading(false);
+      setLoadedUserId(null);
       return;
     }
 
@@ -52,6 +54,7 @@ export function useAssetAccounts(currentUser: User | null) {
           setAccounts(((data ?? []) as AssetAccountRow[]).map(fromDbRow));
         }
 
+        setLoadedUserId(currentUser.id);
         setIsLoading(false);
       });
 
@@ -111,7 +114,7 @@ export function useAssetAccounts(currentUser: User | null) {
   return {
     accounts,
     error,
-    isLoading,
+    isLoading: isLoading || Boolean(shouldUseRemote && loadedUserId !== currentUser?.id),
     saveAccount,
     setError,
     shouldUseRemote,

@@ -1,10 +1,12 @@
-import { Badge, Box, Button, Group, Paper, Stack, Text, UnstyledButton } from "@mantine/core";
+import { Badge, Box, Button, Group, Paper, Skeleton, Stack, Text, UnstyledButton } from "@mantine/core";
 import { IconChevronDown, IconChevronRight, IconEdit, IconPlus } from "@tabler/icons-react";
 import { assetTypes, assetTypesById, type AssetAccount, type AssetType } from "../asset-data";
 import { formatAmount } from "../asset-format";
 import type { GroupedAssetAccounts } from "../asset-metrics";
 import { AssetDataStatus } from "./AssetDataStatus";
 import { TypeIcon } from "./TypeIcon";
+
+const assetSkeletonRows = ["first", "second", "third", "fourth"] as const;
 
 export function AssetAccountList({
   amountVisible,
@@ -33,52 +35,76 @@ export function AssetAccountList({
 }) {
   return (
     <Paper className="asset-list-panel">
-      <AssetDataStatus
-        error={error}
-        isAuthenticated={isAuthenticated}
-        isConfigured={isConfigured}
-        isLoading={isLoading}
-        isRemote={isRemote}
-      />
-      {groupedAccounts.length === 0 ? (
-        <AssetEmptyState isAuthenticated={isAuthenticated} isLoading={isLoading} onCreate={onCreate} />
+      {isLoading ? (
+        <AssetAccountListSkeleton />
       ) : (
-        groupedAccounts.map((group) => (
-          <AssetAccountGroup
-            amountVisible={amountVisible}
-            collapsed={Boolean(collapsedGroups[group.id])}
-            group={group}
-            key={group.id}
-            onAccountClick={onAccountClick}
-            onToggle={() => onToggleGroup(group.id)}
+        <>
+          <AssetDataStatus
+            error={error}
+            isAuthenticated={isAuthenticated}
+            isConfigured={isConfigured}
+            isRemote={isRemote}
           />
-        ))
+          {groupedAccounts.length === 0 ? (
+            <AssetEmptyState isAuthenticated={isAuthenticated} onCreate={onCreate} />
+          ) : (
+            groupedAccounts.map((group) => (
+              <AssetAccountGroup
+                amountVisible={amountVisible}
+                collapsed={Boolean(collapsedGroups[group.id])}
+                group={group}
+                key={group.id}
+                onAccountClick={onAccountClick}
+                onToggle={() => onToggleGroup(group.id)}
+              />
+            ))
+          )}
+        </>
       )}
     </Paper>
   );
 }
 
+function AssetAccountListSkeleton() {
+  return (
+    <Stack
+      className="asset-list-skeleton"
+      gap={0}
+      role="status"
+      aria-label="正在加载资产账户"
+      aria-busy="true"
+    >
+      {assetSkeletonRows.map((row) => (
+        <Group className="asset-account-skeleton-row" gap="md" wrap="nowrap" key={row}>
+          <Skeleton circle height={44} />
+          <Stack className="asset-account-skeleton-copy" gap={8}>
+            <Skeleton height={18} width="42%" radius="sm" />
+            <Skeleton height={13} width="68%" radius="sm" />
+          </Stack>
+          <Skeleton height={22} width={86} radius="sm" />
+        </Group>
+      ))}
+    </Stack>
+  );
+}
+
 function AssetEmptyState({
   isAuthenticated,
-  isLoading,
   onCreate,
 }: {
   isAuthenticated: boolean;
-  isLoading: boolean;
   onCreate: () => void;
 }) {
   return (
     <Stack className="asset-empty" align="center" justify="center">
-      <Text className="asset-empty-title">{isLoading ? "正在加载资产账户" : isAuthenticated ? "还没有资产账户" : "请先登录"}</Text>
+      <Text className="asset-empty-title">{isAuthenticated ? "还没有资产账户" : "请先登录"}</Text>
       <Text className="asset-empty-copy">
-        {isLoading
-          ? "稍等一下，正在从数据库同步。"
-          : isAuthenticated
-            ? "先添加一个账户，汇总页会自动计算净资产和分组余额。"
-            : "资产账户会按登录用户同步到数据库。"}
+        {isAuthenticated
+          ? "先添加一个账户，汇总页会自动计算净资产和分组余额。"
+          : "资产账户会按登录用户同步到数据库。"}
       </Text>
       <Button className="asset-add-button" leftSection={<IconPlus size={18} />} onClick={onCreate}>
-        {isAuthenticated ? "添加资产" : "去登录"}
+        {isAuthenticated ? "添加账户" : "去登录"}
       </Button>
     </Stack>
   );

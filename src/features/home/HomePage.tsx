@@ -37,7 +37,6 @@ export function HomePage() {
 
       <Container size="xl" component="main" className="main-content">
         <section className="hero" aria-labelledby="home-title">
-          <Text className="hero-kicker">Personal Life Toolkit</Text>
           <Title id="home-title" className="hero-title">
             生活里的小事务，有个稳定入口
           </Title>

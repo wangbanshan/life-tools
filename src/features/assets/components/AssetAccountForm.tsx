@@ -56,10 +56,10 @@ export function AssetAccountForm({
         </UnstyledButton>
 
         <div className="asset-form-inline-field">
-          <Text className="asset-form-label">名称</Text>
+          <Text className="asset-form-label">账户名称</Text>
           <TextInput
             classNames={{ root: "asset-inline-input-wrap", input: "asset-input" }}
-            placeholder="点此输入..."
+            placeholder="输入账户名称"
             value={name}
             onChange={(event) => setName(event.currentTarget.value)}
           />
@@ -68,7 +68,7 @@ export function AssetAccountForm({
 
       <Paper className="asset-form-section">
         <div className="asset-form-inline-field">
-          <Text className="asset-form-label">账户余额</Text>
+          <Text className="asset-form-label">{type.kind === "liability" ? "当前欠款" : "当前余额"}</Text>
           <NumberInput
             classNames={{ root: "asset-inline-input-wrap", input: "asset-input" }}
             decimalScale={2}
@@ -95,8 +95,8 @@ export function AssetAccountForm({
       <Paper className="asset-form-section">
         <Group className="asset-switch-row" justify="space-between" wrap="nowrap">
           <Box>
-            <Text className="asset-switch-title">是否计入总资产</Text>
-            <Text className="asset-switch-copy">开启后，账户余额将计入汇总页</Text>
+            <Text className="asset-switch-title">计入净资产统计</Text>
+            <Text className="asset-switch-copy">开启后，此账户会参与净资产汇总</Text>
           </Box>
           <Switch checked={includeInTotal} onChange={(event) => setIncludeInTotal(event.currentTarget.checked)} />
         </Group>

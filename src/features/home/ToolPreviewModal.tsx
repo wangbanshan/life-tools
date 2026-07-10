@@ -25,7 +25,7 @@ export function ToolPreviewModal({ opened, tool, onClose }: ToolPreviewModalProp
       </Text>
       <Group justify="flex-end" mt={rem(24)}>
         <Button className="modal-action" onClick={onClose} radius="xl">
-          先看看
+          知道了
         </Button>
       </Group>
     </Modal>
