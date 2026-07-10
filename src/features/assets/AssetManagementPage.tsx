@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Button, Container, Drawer, Group, Text, Title, Tooltip } from "@mantine/core";
+import { ActionIcon, Box, Button, Container, Drawer, Group, Title, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconArrowLeft, IconEye, IconEyeOff, IconPlus } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
@@ -108,12 +108,9 @@ export function AssetManagementPage() {
             <ActionIcon component={Link} to="/" variant="subtle" className="asset-nav-button" aria-label="返回首页">
               <IconArrowLeft size={22} stroke={2} />
             </ActionIcon>
-            <Box>
-              <Text className="asset-kicker">Life Tools</Text>
-              <Title className="asset-title" order={1}>
-                资产管理
-              </Title>
-            </Box>
+            <Title className="asset-title" order={1}>
+              资产管理
+            </Title>
           </Group>
 
           <Group gap="xs" wrap="nowrap">
@@ -127,8 +124,13 @@ export function AssetManagementPage() {
                 {amountVisible ? <IconEye size={21} stroke={1.9} /> : <IconEyeOff size={21} stroke={1.9} />}
               </ActionIcon>
             </Tooltip>
-            <Button className="asset-add-button" leftSection={<IconPlus size={20} stroke={2.2} />} onClick={openCreateFlow}>
-              添加
+            <Button
+              className="asset-add-button"
+              leftSection={<IconPlus size={20} stroke={2.2} />}
+              aria-label="添加账户"
+              onClick={openCreateFlow}
+            >
+              添加账户
             </Button>
           </Group>
         </Group>
@@ -137,6 +139,7 @@ export function AssetManagementPage() {
           <AssetSummary
             accountsCount={accounts.length}
             amountVisible={amountVisible}
+            isLoading={isAssetLoading}
             netAssets={netAssets}
             totals={totals}
           />
@@ -173,7 +176,7 @@ export function AssetManagementPage() {
         onClose={form.close}
         position="right"
         size="min(520px, 100vw)"
-        title={editingAccount ? "编辑资产" : `添加资产-${selectedType.name}`}
+        title={editingAccount ? `编辑${selectedType.name}账户` : `添加${selectedType.name}账户`}
         classNames={{ content: "asset-form-drawer", header: "asset-drawer-header", title: "asset-drawer-title", body: "asset-form-body" }}
       >
         <AssetAccountForm

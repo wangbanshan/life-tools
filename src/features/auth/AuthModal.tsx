@@ -6,7 +6,6 @@ import {
   PasswordInput,
   SegmentedControl,
   Stack,
-  Text,
   TextInput,
 } from "@mantine/core";
 import { IconAlertCircle, IconLock, IconUser } from "@tabler/icons-react";
@@ -62,8 +61,16 @@ export function AuthModal({ opened, onClose }: AuthModalProps) {
       return "账号服务尚未配置";
     }
 
+    if (!normalizedUsername) {
+      return "请输入用户名";
+    }
+
     if (!usernamePattern.test(normalizedUsername)) {
       return "用户名只能包含小写字母、数字、下划线，长度 3-24 位";
+    }
+
+    if (!password) {
+      return "请输入密码";
     }
 
     if (password.length < 6) {
@@ -118,27 +125,20 @@ export function AuthModal({ opened, onClose }: AuthModalProps) {
     >
       <form className="auth-form" onSubmit={handleSubmit}>
         <Stack gap="md">
-          <div>
-            <SegmentedControl
-              fullWidth
-              value={mode}
-              onChange={handleModeChange}
-              data={[
-                { value: "login", label: "登录" },
-                { value: "register", label: "注册" },
-              ]}
-              classNames={{
-                root: "auth-segmented",
-                indicator: "auth-segmented-indicator",
-                label: "auth-segmented-label",
-              }}
-            />
-            <Text className="auth-helper">
-              {mode === "login"
-                ? "使用你的用户名继续，数据会回到同一个工具台。"
-                : "创建一个轻量账号，用来保存和同步你的生活工具数据。"}
-            </Text>
-          </div>
+          <SegmentedControl
+            fullWidth
+            value={mode}
+            onChange={handleModeChange}
+            data={[
+              { value: "login", label: "登录" },
+              { value: "register", label: "注册" },
+            ]}
+            classNames={{
+              root: "auth-segmented",
+              indicator: "auth-segmented-indicator",
+              label: "auth-segmented-label",
+            }}
+          />
 
           {!isConfigured ? (
             <Alert
@@ -164,7 +164,7 @@ export function AuthModal({ opened, onClose }: AuthModalProps) {
 
           <TextInput
             label="用户名"
-            placeholder="例如 jianwu"
+            placeholder="输入用户名"
             value={username}
             onChange={(event) => setUsername(event.currentTarget.value.toLowerCase())}
             leftSection={<IconUser size={18} />}
@@ -174,7 +174,7 @@ export function AuthModal({ opened, onClose }: AuthModalProps) {
 
           <PasswordInput
             label="密码"
-            placeholder="至少 6 位"
+            placeholder="输入密码"
             value={password}
             onChange={(event) => setPassword(event.currentTarget.value)}
             leftSection={<IconLock size={18} />}
@@ -182,8 +182,7 @@ export function AuthModal({ opened, onClose }: AuthModalProps) {
             radius="lg"
           />
 
-          <Group justify="space-between" align="center" className="auth-actions">
-            <Text className="auth-note">用户名注册后暂不支持修改。</Text>
+          <Group justify="flex-end" className="auth-actions">
             <Button
               className="modal-action"
               type="submit"

@@ -1,5 +1,5 @@
 import { ActionIcon, Menu, Text, Tooltip } from "@mantine/core";
-import { IconLogout, IconSettings, IconUserCircle } from "@tabler/icons-react";
+import { IconLogout, IconUserCircle } from "@tabler/icons-react";
 import { useAuth } from "./auth-context";
 
 type AccountMenuProps = {
@@ -45,12 +45,8 @@ export function AccountMenu({ onLoginClick }: AccountMenuProps) {
         <Menu.Label>当前账号</Menu.Label>
         <div className="account-card">
           <Text className="account-name">{currentUser.username}</Text>
-          <Text className="account-email">在线同步中</Text>
         </div>
         <Menu.Divider />
-        <Menu.Item leftSection={<IconSettings size={17} />} disabled>
-          账号设置
-        </Menu.Item>
         <Menu.Item leftSection={<IconLogout size={17} />} color="apricot" onClick={logout}>
           退出登录
         </Menu.Item>
