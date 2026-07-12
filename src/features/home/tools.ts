@@ -15,7 +15,7 @@ export type ToolItem = {
   accent: ToolAccent;
   Icon: Icon;
   requiresAuth?: boolean;
-  path?: "/assets";
+  path?: "/assets" | "/subscriptions";
 };
 
 export const tools: ToolItem[] = [
@@ -33,6 +33,7 @@ export const tools: ToolItem[] = [
     detail: "订阅日历会记录服务名称、金额、续费周期和提醒时间，帮你提前处理不想继续付费的项目。",
     accent: "apricot",
     Icon: IconCalendarRepeat,
+    path: "/subscriptions",
   },
   {
     title: "共享账本",

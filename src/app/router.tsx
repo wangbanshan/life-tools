@@ -1,6 +1,7 @@
 import { createRootRoute, createRoute, createRouter, Outlet } from "@tanstack/react-router";
 import { AssetManagementPage } from "../features/assets/AssetManagementPage";
 import { HomePage } from "../features/home/HomePage";
+import { SubscriptionCalendarPage } from "../features/subscriptions/SubscriptionCalendarPage";
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -18,7 +19,13 @@ const assetsRoute = createRoute({
   component: AssetManagementPage,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, assetsRoute]);
+const subscriptionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/subscriptions",
+  component: SubscriptionCalendarPage,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, assetsRoute, subscriptionsRoute]);
 
 export const router = createRouter({ routeTree });
 

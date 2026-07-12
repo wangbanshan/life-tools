@@ -1,4 +1,6 @@
 import "@mantine/core/styles.css";
+import "@mantine/dates/styles.css";
+import "dayjs/locale/zh-cn";
 import "./styles.css";
 
 import React from "react";

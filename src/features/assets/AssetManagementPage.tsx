@@ -1,5 +1,5 @@
 import { ActionIcon, Box, Button, Container, Drawer, Group, Title, Tooltip } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { IconArrowLeft, IconEye, IconEyeOff, IconPlus } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -16,6 +16,7 @@ import { AssetSummary } from "./components/AssetSummary";
 import { AssetTypePicker } from "./components/AssetTypePicker";
 
 export function AssetManagementPage() {
+  const isMobile = useMediaQuery("(max-width: 40em)");
   const { currentUser, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const {
     accounts,
@@ -174,8 +175,8 @@ export function AssetManagementPage() {
       <Drawer
         opened={formOpened}
         onClose={form.close}
-        position="right"
-        size="min(520px, 100vw)"
+        position={isMobile ? "bottom" : "right"}
+        size={isMobile ? "100dvh" : 520}
         title={editingAccount ? `编辑${selectedType.name}账户` : `添加${selectedType.name}账户`}
         classNames={{ content: "asset-form-drawer", header: "asset-drawer-header", title: "asset-drawer-title", body: "asset-form-body" }}
       >

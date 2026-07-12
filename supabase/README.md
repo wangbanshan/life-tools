@@ -5,7 +5,7 @@
 ## 需要配置
 
 1. 在 Supabase 项目中关闭邮箱确认：Auth -> Providers -> Email -> Confirm email 关闭。
-2. 执行迁移 SQL：`supabase/migrations/202607020001_create_profiles.sql`、`supabase/migrations/202607030001_create_asset_accounts.sql` 和 `supabase/migrations/202607030002_harden_profiles_security.sql`。
+2. 按文件名顺序执行 `supabase/migrations` 下的迁移 SQL，包括订阅日历所需的 `20260710151737_create_subscriptions.sql`。
 3. 本地或部署环境配置：
 
 ```bash
@@ -23,6 +23,8 @@ VITE_AUTH_EMAIL_DOMAIN=内部用户名映射域名
 
 ## 迁移文件
 
-- `supabase/migrations/202607020001_create_profiles.sql`
-- `supabase/migrations/202607030001_create_asset_accounts.sql`
-- `supabase/migrations/202607030002_harden_profiles_security.sql`
+- `supabase/migrations/20260702114548_create_profiles.sql`
+- `supabase/migrations/20260703134249_create_asset_accounts.sql`
+- `supabase/migrations/20260703134358_harden_profiles_security.sql`
+- `supabase/migrations/20260710151737_create_subscriptions.sql`
+- `supabase/migrations/20260710160518_harden_subscriptions_privileges.sql`
