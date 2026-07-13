@@ -1,19 +1,22 @@
 import {
   Button,
   Checkbox,
+  Drawer,
   Group,
   NumberInput,
-  SegmentedControl,
   Select,
   Stack,
   Text,
   TextInput,
+  UnstyledButton,
 } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import { useMediaQuery } from "@mantine/hooks";
 import {
   IconArchive,
   IconCalendar,
+  IconCheck,
+  IconChevronRight,
   IconDeviceFloppy,
 } from "@tabler/icons-react";
 import { useRef, useState } from "react";
@@ -45,6 +48,61 @@ const reminderOptions = [0, 1, 3, 7].map((offset) => ({
   label: offset === 0 ? "续费当天" : `提前 ${offset} 天`,
 }));
 const datePopoverProps = { withinPortal: true, shadow: "xl" as const, position: "bottom-start" as const };
+
+function MobileCyclePicker({
+  value,
+  onChange,
+}: {
+  value: CyclePreset;
+  onChange: (value: CyclePreset) => void;
+}) {
+  const [opened, setOpened] = useState(false);
+  const selected = cycleOptions.find((option) => option.value === value);
+
+  return (
+    <>
+      <div>
+        <Text className="subscription-field-label">续费周期</Text>
+        <UnstyledButton className="subscription-service-trigger" onClick={() => setOpened(true)}>
+          <Group gap="sm" wrap="nowrap">
+            <Text className="subscription-service-trigger-name">{selected?.label}</Text>
+            <IconChevronRight size={18} aria-hidden="true" />
+          </Group>
+        </UnstyledButton>
+      </div>
+      <Drawer
+        opened={opened}
+        onClose={() => setOpened(false)}
+        position="bottom"
+        size="50dvh"
+        title="选择续费周期"
+        classNames={{
+          content: "subscription-service-drawer",
+          header: "subscription-service-drawer-header",
+          title: "subscription-service-drawer-title",
+          body: "subscription-cycle-drawer-body",
+        }}
+      >
+        {cycleOptions.map((option) => (
+          <UnstyledButton
+            key={option.value}
+            className="subscription-service-row"
+            data-selected={option.value === value || undefined}
+            onClick={() => {
+              onChange(option.value as CyclePreset);
+              setOpened(false);
+            }}
+          >
+            <Group justify="space-between">
+              <Text>{option.label}</Text>
+              {option.value === value && <IconCheck size={17} aria-hidden="true" />}
+            </Group>
+          </UnstyledButton>
+        ))}
+      </Drawer>
+    </>
+  );
+}
 
 function getCyclePreset(subscription: Subscription | null): CyclePreset {
   if (!subscription) return "monthly";
@@ -286,20 +344,17 @@ export function SubscriptionForm({
           />
         </div>
 
-        <div className="subscription-cycle-field">
-          <Text className="subscription-field-label">续费周期</Text>
-          <SegmentedControl
-            fullWidth
-            data={cycleOptions}
+        {isMobile ? (
+          <MobileCyclePicker
             value={cyclePreset}
             onChange={(value) => {
-              setCyclePreset(value as CyclePreset);
+              setCyclePreset(value);
               clearError("cycle");
             }}
-            className="subscription-cycle-control subscription-cycle-desktop"
           />
+        ) : (
           <Select
-            aria-label="续费周期"
+            label="续费周期"
             data={cycleOptions}
             allowDeselect={false}
             value={cyclePreset}
@@ -307,10 +362,10 @@ export function SubscriptionForm({
               setCyclePreset((value as CyclePreset | null) ?? "monthly");
               clearError("cycle");
             }}
-            className="subscription-cycle-mobile"
+            comboboxProps={subscriptionSelectComboboxProps}
             classNames={subscriptionSelectClassNames}
           />
-        </div>
+        )}
 
         {cyclePreset === "custom" && (
           <div className="subscription-form-grid subscription-form-grid-two subscription-custom-cycle">

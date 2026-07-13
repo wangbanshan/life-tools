@@ -57,6 +57,8 @@ describe("subscription Mantine components", () => {
     expect(markup).toContain("服务名称");
     expect(markup).toContain("每期金额");
     expect(markup).toContain("续费周期");
+    expect(markup).toContain("mantine-Select-root");
+    expect(markup).not.toContain("mantine-SegmentedControl-root");
     expect(markup).toContain("下一续费日");
     expect(markup).toContain("站内提醒时间");
     expect(markup).toContain("续费当天");
