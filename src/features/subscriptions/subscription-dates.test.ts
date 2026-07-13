@@ -4,6 +4,7 @@ import {
   addBillingPeriods,
   getOccurrencesInRange,
   getUpcomingOccurrences,
+  isReminderDue,
 } from "./subscription-dates";
 import { getEstimatedTotals } from "./subscription-metrics";
 
@@ -62,6 +63,16 @@ describe("upcoming subscriptions", () => {
       "tomorrow:2026-07-11",
       "future:2026-07-17",
     ]);
+  });
+
+  it("only marks selected reminder offsets as due", () => {
+    for (const offset of [0, 1, 3, 7]) {
+      const subscription = makeSubscription({ reminderOffsets: [offset] });
+      expect(isReminderDue({ id: String(offset), date: `2026-07-${String(10 + offset).padStart(2, "0")}`, subscription }, "2026-07-10")).toBe(true);
+    }
+    const subscription = makeSubscription({ reminderOffsets: [1] });
+    expect(isReminderDue({ id: "unselected", date: "2026-07-13", subscription }, "2026-07-10")).toBe(false);
+    expect(isReminderDue({ id: "past", date: "2026-07-09", subscription }, "2026-07-10")).toBe(false);
   });
 });
 

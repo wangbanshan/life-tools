@@ -2,7 +2,7 @@ import { ActionIcon, Box, Button, Container, Drawer, Group, Loader, Modal, Paper
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { IconArchive, IconArrowLeft, IconPlus } from "@tabler/icons-react";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { isSupabaseConfigured } from "../../lib/supabase/client";
 import { AuthModal } from "../auth/AuthModal";
 import { useAuth } from "../auth/auth-context";
@@ -13,7 +13,7 @@ import { SubscriptionForm } from "./components/SubscriptionForm";
 import { SubscriptionSummary } from "./components/SubscriptionSummary";
 import { SubscriptionUpcoming } from "./components/SubscriptionUpcoming";
 import type { Subscription } from "./subscription-data";
-import { differenceInDays, getOccurrencesInRange, getUpcomingOccurrences, todayDateOnly } from "./subscription-dates";
+import { getOccurrencesInRange, getUpcomingOccurrences, isReminderDue, todayDateOnly } from "./subscription-dates";
 import { convertCurrencyTotalsToCny } from "./exchange-rates";
 import { getEstimatedTotals } from "./subscription-metrics";
 import type { SubscriptionFormValues } from "./subscription-model";
@@ -49,23 +49,16 @@ export function SubscriptionCalendarPage() {
     if (!isAuthLoading && !isAuthenticated) openAuth();
   }, [isAuthenticated, isAuthLoading, openAuth]);
 
-  const activeSubscriptions = useMemo(() => subscriptions.filter((item) => item.status === "active"), [subscriptions]);
-  const archivedSubscriptions = useMemo(() => subscriptions.filter((item) => item.status === "archived"), [subscriptions]);
-  const totals = useMemo(() => getEstimatedTotals(subscriptions, today), [subscriptions, today]);
+  const activeSubscriptions = subscriptions.filter((item) => item.status === "active");
+  const archivedSubscriptions = subscriptions.filter((item) => item.status === "archived");
+  const totals = getEstimatedTotals(subscriptions, today);
   const needsExchangeRates = Object.keys(totals.yearly).some((currency) => currency !== "CNY");
   const exchangeRates = useExchangeRates(needsExchangeRates);
-  const upcoming = useMemo(() => getUpcomingOccurrences(activeSubscriptions, today), [activeSubscriptions, today]);
-  const dueSoonCount = useMemo(
-    () => upcoming.filter((occurrence) => differenceInDays(occurrence.date, today) <= 7).length,
-    [today, upcoming],
-  );
-  const yearlyCny = useMemo(
-    () => convertCurrencyTotalsToCny(totals.yearly, exchangeRates.data),
-    [exchangeRates.data, totals.yearly],
-  );
-  const selectedOccurrences = useMemo(
-    () => subscriptions.flatMap((subscription) => getOccurrencesInRange(subscription, selectedDate, selectedDate)),
-    [selectedDate, subscriptions],
+  const upcoming = getUpcomingOccurrences(activeSubscriptions, today);
+  const reminderCount = upcoming.filter((occurrence) => isReminderDue(occurrence, today)).length;
+  const yearlyCny = convertCurrencyTotalsToCny(totals.yearly, exchangeRates.data);
+  const selectedOccurrences = subscriptions.flatMap((subscription) =>
+    getOccurrencesInRange(subscription, selectedDate, selectedDate),
   );
   const pageLoading = isAuthLoading || isLoading;
 
@@ -128,10 +121,10 @@ export function SubscriptionCalendarPage() {
             <Title className="subscription-title" order={1}>订阅日历</Title>
           </Group>
           <Group gap="xs" wrap="nowrap">
-            <Button variant="light" className="subscription-archive-button" leftSection={<IconArchive size={18} />} onClick={openArchive}>
+            <Button variant="light" className="subscription-archive-button" aria-label={`已归档 ${archivedSubscriptions.length} 项`} leftSection={<IconArchive size={18} aria-hidden="true" />} onClick={openArchive}>
               已归档 {archivedSubscriptions.length}
             </Button>
-            <Button className="subscription-add-button" leftSection={<IconPlus size={20} />} onClick={openCreate}>添加订阅</Button>
+            <Button className="subscription-add-button" aria-label="添加订阅" leftSection={<IconPlus size={20} aria-hidden="true" />} onClick={openCreate}>添加订阅</Button>
           </Group>
         </Group>
 
@@ -146,7 +139,7 @@ export function SubscriptionCalendarPage() {
           monthly={totals.monthly}
           yearly={totals.yearly}
           yearlyCny={yearlyCny}
-          dueSoonCount={dueSoonCount}
+          dueSoonCount={reminderCount}
           isLoading={pageLoading}
           isYearlyConverting={needsExchangeRates && exchangeRates.isLoading}
         />

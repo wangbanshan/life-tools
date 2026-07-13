@@ -18,12 +18,14 @@ import {
 } from "../subscription-data";
 import { SubscriptionMark } from "./SubscriptionMark";
 
+const serviceGroups = subscriptionCategories.map((category) => ({
+  ...category,
+  presets: subscriptionPresets.filter((preset) => preset.category === category.value),
+}));
 const serviceOptions = [
-  ...subscriptionCategories.map((category) => ({
-    group: category.label,
-    items: subscriptionPresets
-      .filter((preset) => preset.category === category.value)
-      .map((preset) => ({ value: preset.key, label: preset.name })),
+  ...serviceGroups.map((group) => ({
+    group: group.label,
+    items: group.presets.map((preset) => ({ value: preset.key, label: preset.name })),
   })),
   { group: "自定义", items: [{ value: "__custom", label: "自定义服务" }] },
 ];
@@ -65,13 +67,11 @@ function MobileServicePicker({ value, onChange }: { value: string; onChange: (va
   const [search, setSearch] = useState("");
   const selectedPreset = subscriptionPresetsByKey[value];
   const normalizedSearch = search.trim().toLocaleLowerCase();
-  const groups = subscriptionCategories
-    .map((category) => ({
-      ...category,
-      presets: subscriptionPresets.filter(
-        (preset) =>
-          preset.category === category.value &&
-          (!normalizedSearch || preset.name.toLocaleLowerCase().includes(normalizedSearch)),
+  const groups = serviceGroups
+    .map((group) => ({
+      ...group,
+      presets: group.presets.filter(
+        (preset) => !normalizedSearch || preset.name.toLocaleLowerCase().includes(normalizedSearch),
       ),
     }))
     .filter((category) => category.presets.length > 0);

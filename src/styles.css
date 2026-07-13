@@ -1046,10 +1046,12 @@ a {
   .subscription-page { padding: 16px 10px 44px; }
   .subscription-topbar { margin-bottom: 16px; }
   .subscription-title { font-size: 25px; }
-  .subscription-archive-button { min-width: 42px; padding-inline: 10px; }
-  .subscription-archive-button .mantine-Button-label { display: none; }
-  .subscription-add-button { min-width: 44px; padding-inline: 12px; }
+  .subscription-archive-button,
+  .subscription-add-button { width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; }
+  .subscription-archive-button .mantine-Button-label,
   .subscription-add-button .mantine-Button-label { display: none; }
+  .subscription-archive-button .mantine-Button-section,
+  .subscription-add-button .mantine-Button-section { margin: 0; }
   .subscription-summary-card { min-height: 112px; flex-direction: column; gap: 9px; padding: 14px; }
   .subscription-summary-icon { width: 38px; height: 38px; }
   .subscription-summary-value { font-size: 17px; }

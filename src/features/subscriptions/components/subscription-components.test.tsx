@@ -3,17 +3,38 @@ import { DatesProvider } from "@mantine/dates";
 import "dayjs/locale/zh-cn";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+import type { Subscription } from "../subscription-data";
 import { SubscriptionCalendar } from "./SubscriptionCalendar";
 import { SubscriptionDayAgenda } from "./SubscriptionDayAgenda";
 import { prepareSubscriptionForm, SubscriptionForm } from "./SubscriptionForm";
 import { SubscriptionMark } from "./SubscriptionMark";
 import { SubscriptionSummary } from "./SubscriptionSummary";
+import { SubscriptionUpcoming } from "./SubscriptionUpcoming";
 
 const datesSettings = {
   locale: "zh-cn",
   firstDayOfWeek: 1 as const,
   weekendDays: [0, 6] as [0, 6],
   consistentWeeks: true,
+};
+const subscriptionFixture: Subscription = {
+  id: "subscription-1",
+  providerKey: "chatgpt",
+  name: "ChatGPT",
+  category: "ai",
+  planName: "Plus",
+  note: "keep me",
+  amount: 20,
+  currency: "USD",
+  billingIntervalCount: 1,
+  billingIntervalUnit: "month",
+  trackingStartedOn: "2026-01-01",
+  renewalAnchorOn: "2026-07-30",
+  reminderOffsets: [0, 7],
+  status: "active",
+  archivedOn: null,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
 };
 
 function renderWithProviders(component: React.ReactNode) {
@@ -37,9 +58,11 @@ describe("subscription Mantine components", () => {
     expect(markup).toContain("每期金额");
     expect(markup).toContain("续费周期");
     expect(markup).toContain("下一续费日");
+    expect(markup).toContain("站内提醒时间");
+    expect(markup).toContain("续费当天");
+    expect(markup).toContain("提前 7 天");
     expect(markup).not.toContain("套餐名称");
     expect(markup).not.toContain("分类");
-    expect(markup).not.toContain("站内提醒时间");
     expect(markup).not.toContain("开始记录日");
     expect(markup).not.toContain("补充说明");
     expect(markup).not.toContain('type="date"');
@@ -48,25 +71,7 @@ describe("subscription Mantine components", () => {
   it("derives preset service details without asking for a duplicate name", () => {
     const markup = renderWithProviders(
       <SubscriptionForm
-        subscription={{
-          id: "subscription-1",
-          providerKey: "chatgpt",
-          name: "ChatGPT",
-          category: "ai",
-          planName: "Plus",
-          note: "keep me",
-          amount: 20,
-          currency: "USD",
-          billingIntervalCount: 1,
-          billingIntervalUnit: "month",
-          trackingStartedOn: "2026-01-01",
-          renewalAnchorOn: "2026-07-30",
-          reminderOffsets: [0, 7],
-          status: "active",
-          archivedOn: null,
-          createdAt: "2026-01-01T00:00:00.000Z",
-          updatedAt: "2026-01-01T00:00:00.000Z",
-        }}
+        subscription={{ ...subscriptionFixture, reminderOffsets: [14, 30] }}
         onSave={async () => true}
         onArchive={async () => true}
       />,
@@ -75,6 +80,8 @@ describe("subscription Mantine components", () => {
     expect(markup).not.toContain("服务名称");
     expect(markup).not.toContain("keep me");
     expect(markup).toContain("归档");
+    expect(markup).toContain("提前 14 天（旧设置）");
+    expect(markup).toContain("提前 30 天（旧设置）");
   });
 
   it("validates all core fields through the form error path", () => {
@@ -88,6 +95,7 @@ describe("subscription Mantine components", () => {
       customCount: 0,
       customUnit: "month",
       renewalAnchorOn: "",
+      reminderOffsets: [],
     });
     expect(prepared.values).toBeNull();
     expect(prepared.errors).toEqual({
@@ -95,31 +103,13 @@ describe("subscription Mantine components", () => {
       amount: "请输入有效金额",
       cycle: "请输入 1 到 3650 之间的整数",
       renewal: "请选择下一续费日",
+      reminders: "请至少选择一个提醒时间",
     });
   });
 
   it("derives presets and preserves hidden values while editing", () => {
-    const subscription = {
-      id: "subscription-1",
-      providerKey: "chatgpt",
-      name: "ChatGPT",
-      category: "ai" as const,
-      planName: "Plus",
-      note: "keep me",
-      amount: 20,
-      currency: "USD",
-      billingIntervalCount: 1,
-      billingIntervalUnit: "month" as const,
-      trackingStartedOn: "2026-01-01",
-      renewalAnchorOn: "2026-07-30",
-      reminderOffsets: [0, 7],
-      status: "active" as const,
-      archivedOn: null,
-      createdAt: "2026-01-01T00:00:00.000Z",
-      updatedAt: "2026-01-01T00:00:00.000Z",
-    };
     const prepared = prepareSubscriptionForm({
-      subscription,
+      subscription: subscriptionFixture,
       providerValue: "chatgpt",
       name: "ignored",
       amount: 200,
@@ -128,6 +118,7 @@ describe("subscription Mantine components", () => {
       customCount: 99,
       customUnit: "day",
       renewalAnchorOn: "2027-01-01",
+      reminderOffsets: ["3", "14"],
     });
     expect(prepared.errors).toEqual({});
     expect(prepared.values).toMatchObject({
@@ -139,7 +130,7 @@ describe("subscription Mantine components", () => {
       billingIntervalCount: 1,
       billingIntervalUnit: "year",
       trackingStartedOn: "2026-01-01",
-      reminderOffsets: [0, 7],
+      reminderOffsets: [3, 14],
     });
   });
 
@@ -154,6 +145,7 @@ describe("subscription Mantine components", () => {
       customCount: 3,
       customUnit: "month",
       renewalAnchorOn: "2026-08-01",
+      reminderOffsets: ["0", "7"],
     });
     expect(prepared.values).toMatchObject({
       providerKey: null,
@@ -203,30 +195,26 @@ describe("subscription Mantine components", () => {
     expect(markup).toContain("1.28万");
   });
 
+  it("shows reminder status only when the selected offset is due", () => {
+    const markup = renderWithProviders(
+      <SubscriptionUpcoming
+        today="2026-07-10"
+        occurrences={[
+          { id: "due", date: "2026-07-17", subscription: subscriptionFixture },
+          { id: "normal", date: "2026-07-13", subscription: subscriptionFixture },
+        ]}
+        onEdit={() => undefined}
+      />,
+    );
+    expect(markup).toContain("提醒中");
+    expect(markup).toContain("正常");
+  });
+
   it("renders the selected-day table and a brand icon", () => {
-    const subscription = {
-      id: "subscription-1",
-      providerKey: "chatgpt",
-      name: "ChatGPT",
-      category: "ai" as const,
-      planName: "Plus",
-      note: "",
-      amount: 20,
-      currency: "USD",
-      billingIntervalCount: 1,
-      billingIntervalUnit: "month" as const,
-      trackingStartedOn: "2026-01-01",
-      renewalAnchorOn: "2026-07-30",
-      reminderOffsets: [0, 7],
-      status: "active" as const,
-      archivedOn: null,
-      createdAt: "2026-01-01T00:00:00.000Z",
-      updatedAt: "2026-01-01T00:00:00.000Z",
-    };
     const tableMarkup = renderWithProviders(
       <SubscriptionDayAgenda
         date="2026-07-30"
-        occurrences={[{ id: "subscription-1:2026-07-30", date: "2026-07-30", subscription }]}
+        occurrences={[{ id: "subscription-1:2026-07-30", date: "2026-07-30", subscription: subscriptionFixture }]}
         onEdit={() => undefined}
       />,
     );

@@ -1,6 +1,6 @@
 import { Badge, Group, Paper, Stack, Text, UnstyledButton } from "@mantine/core";
 import type { Subscription } from "../subscription-data";
-import { differenceInDays, parseDateOnly, type SubscriptionOccurrence } from "../subscription-dates";
+import { differenceInDays, isReminderDue, parseDateOnly, type SubscriptionOccurrence } from "../subscription-dates";
 import { formatCurrencyAmount } from "../subscription-metrics";
 import { SubscriptionMark } from "./SubscriptionMark";
 
@@ -38,7 +38,7 @@ export function SubscriptionUpcoming({
       ) : (
         <Stack gap={0}>
           {visibleOccurrences.map((occurrence) => {
-            const days = differenceInDays(occurrence.date, today);
+            const reminderDue = isReminderDue(occurrence, today);
             return (
               <UnstyledButton
                 className="subscription-upcoming-row"
@@ -58,8 +58,8 @@ export function SubscriptionUpcoming({
                   <Text className="subscription-upcoming-amount">
                     {formatCurrencyAmount(occurrence.subscription.amount, occurrence.subscription.currency)}
                   </Text>
-                  <Badge color={days <= 1 ? "orange" : "green"} variant="light" size="sm">
-                    {days <= 1 ? "即将到期" : "正常"}
+                  <Badge color={reminderDue ? "orange" : "green"} variant="light" size="sm">
+                    {reminderDue ? "提醒中" : "正常"}
                   </Badge>
                 </div>
               </UnstyledButton>

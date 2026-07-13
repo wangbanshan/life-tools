@@ -32,6 +32,11 @@ export function differenceInDays(later: string, earlier: string) {
   return Math.round((parseDateOnly(later).getTime() - parseDateOnly(earlier).getTime()) / millisecondsPerDay);
 }
 
+export function isReminderDue(occurrence: SubscriptionOccurrence, today: string) {
+  const days = differenceInDays(occurrence.date, today);
+  return days >= 0 && occurrence.subscription.reminderOffsets.includes(days);
+}
+
 export function compareDateOnly(left: string, right: string) {
   return left.localeCompare(right);
 }

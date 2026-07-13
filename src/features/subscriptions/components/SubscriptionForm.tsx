@@ -1,6 +1,7 @@
 import {
   Button,
   Group,
+  MultiSelect,
   NumberInput,
   SegmentedControl,
   Select,
@@ -15,7 +16,7 @@ import {
   IconCalendar,
   IconDeviceFloppy,
 } from "@tabler/icons-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { BillingUnit, Subscription } from "../subscription-data";
 import {
   subscriptionPresetsByKey,
@@ -30,7 +31,7 @@ import {
 } from "./SubscriptionServicePicker";
 
 type CyclePreset = "monthly" | "quarterly" | "half-year" | "yearly" | "custom";
-type FormErrors = Partial<Record<"name" | "amount" | "cycle" | "renewal", string>>;
+type FormErrors = Partial<Record<"name" | "amount" | "cycle" | "renewal" | "reminders", string>>;
 
 const cycleOptions = [
   { value: "monthly", label: "月付" },
@@ -39,6 +40,10 @@ const cycleOptions = [
   { value: "yearly", label: "年付" },
   { value: "custom", label: "自定义" },
 ];
+const reminderOptions = [0, 1, 3, 7].map((offset) => ({
+  value: String(offset),
+  label: offset === 0 ? "续费当天" : `提前 ${offset} 天`,
+}));
 const datePopoverProps = { withinPortal: true, shadow: "xl" as const, position: "bottom-start" as const };
 
 function getCyclePreset(subscription: Subscription | null): CyclePreset {
@@ -74,6 +79,7 @@ export function prepareSubscriptionForm({
   customCount,
   customUnit,
   renewalAnchorOn,
+  reminderOffsets,
 }: {
   subscription: Subscription | null;
   providerValue: string;
@@ -84,6 +90,7 @@ export function prepareSubscriptionForm({
   customCount: string | number;
   customUnit: BillingUnit;
   renewalAnchorOn: string;
+  reminderOffsets: string[];
 }): { errors: FormErrors; values: SubscriptionFormValues | null } {
   const selectedPreset = subscriptionPresetsByKey[providerValue];
   const normalizedAmount = typeof amount === "number" ? amount : Number(amount);
@@ -98,6 +105,7 @@ export function prepareSubscriptionForm({
     errors.cycle = "请输入 1 到 3650 之间的整数";
   }
   if (!renewalAnchorOn) errors.renewal = "请选择下一续费日";
+  if (reminderOffsets.length === 0) errors.reminders = "请至少选择一个提醒时间";
   if (Object.keys(errors).length > 0) return { errors, values: null };
 
   return {
@@ -114,7 +122,7 @@ export function prepareSubscriptionForm({
       billingIntervalUnit: cycle.unit,
       trackingStartedOn: subscription?.trackingStartedOn ?? todayDateOnly(),
       renewalAnchorOn,
-      reminderOffsets: subscription?.reminderOffsets ?? [0, 7],
+      reminderOffsets: reminderOffsets.map(Number),
     },
   };
 }
@@ -137,6 +145,9 @@ export function SubscriptionForm({
   const [customCount, setCustomCount] = useState<string | number>(subscription?.billingIntervalCount ?? 1);
   const [customUnit, setCustomUnit] = useState<BillingUnit>(subscription?.billingIntervalUnit ?? "month");
   const [renewalAnchorOn, setRenewalAnchorOn] = useState(subscription?.renewalAnchorOn ?? todayDateOnly());
+  const [reminderOffsets, setReminderOffsets] = useState(
+    (subscription?.reminderOffsets ?? [0, 7]).map(String),
+  );
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -145,24 +156,16 @@ export function SubscriptionForm({
   const amountRef = useRef<HTMLInputElement>(null);
   const countRef = useRef<HTMLInputElement>(null);
   const renewalRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    setProviderValue(getProviderValue(subscription));
-    setName(subscription?.name ?? "");
-    setAmount(subscription?.amount ?? 0);
-    setCurrency(subscription?.currency ?? "CNY");
-    setCyclePreset(getCyclePreset(subscription));
-    setCustomCount(subscription?.billingIntervalCount ?? 1);
-    setCustomUnit(subscription?.billingIntervalUnit ?? "month");
-    setRenewalAnchorOn(subscription?.renewalAnchorOn ?? todayDateOnly());
-    setErrors({});
-    setSubmitError(null);
-    setIsSaving(false);
-    setIsArchiving(false);
-  }, [subscription]);
+  const reminderRef = useRef<HTMLInputElement>(null);
 
   const selectedPreset = subscriptionPresetsByKey[providerValue];
   const todayPreset = [{ value: todayDateOnly(), label: "今天" }];
+  const reminderData = [
+    ...reminderOptions,
+    ...reminderOffsets
+      .filter((offset) => !reminderOptions.some((option) => option.value === offset))
+      .map((offset) => ({ value: offset, label: `提前 ${offset} 天（旧设置）` })),
+  ];
 
   const clearError = (field: keyof FormErrors) => {
     setErrors((current) => ({ ...current, [field]: undefined }));
@@ -187,6 +190,7 @@ export function SubscriptionForm({
       customCount,
       customUnit,
       renewalAnchorOn,
+      reminderOffsets,
     });
     setErrors(prepared.errors);
     setSubmitError(null);
@@ -195,6 +199,7 @@ export function SubscriptionForm({
     if (prepared.errors.amount) return amountRef.current?.focus();
     if (prepared.errors.cycle) return countRef.current?.focus();
     if (prepared.errors.renewal) return renewalRef.current?.focus();
+    if (prepared.errors.reminders) return reminderRef.current?.focus();
     if (!prepared.values) return;
 
     setIsSaving(true);
@@ -358,6 +363,23 @@ export function SubscriptionForm({
             clearError("renewal");
           }}
           classNames={{ input: "subscription-input" }}
+        />
+
+        <MultiSelect
+          ref={reminderRef}
+          label="站内提醒时间"
+          description="命中所选日期时，会出现在续费提醒中"
+          data={reminderData}
+          value={reminderOffsets}
+          onChange={(value) => {
+            setReminderOffsets(value);
+            clearError("reminders");
+          }}
+          searchable={false}
+          clearable={false}
+          error={errors.reminders}
+          comboboxProps={subscriptionSelectComboboxProps}
+          classNames={subscriptionSelectClassNames}
         />
       </Stack>
 
