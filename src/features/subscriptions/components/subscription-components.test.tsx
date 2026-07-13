@@ -60,7 +60,12 @@ describe("subscription Mantine components", () => {
     expect(markup).toContain("下一续费日");
     expect(markup).toContain("站内提醒时间");
     expect(markup).toContain("续费当天");
+    expect(markup).toContain("提前 1 天");
+    expect(markup).toContain("提前 3 天");
     expect(markup).toContain("提前 7 天");
+    expect(markup).toContain('role="group"');
+    expect(markup.match(/type="checkbox"/g)).toHaveLength(4);
+    expect(markup).not.toContain("mantine-MultiSelect-root");
     expect(markup).not.toContain("套餐名称");
     expect(markup).not.toContain("分类");
     expect(markup).not.toContain("开始记录日");

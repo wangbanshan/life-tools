@@ -1,7 +1,7 @@
 import {
   Button,
+  Checkbox,
   Group,
-  MultiSelect,
   NumberInput,
   SegmentedControl,
   Select,
@@ -365,22 +365,28 @@ export function SubscriptionForm({
           classNames={{ input: "subscription-input" }}
         />
 
-        <MultiSelect
-          ref={reminderRef}
+        <Checkbox.Group
           label="站内提醒时间"
           description="命中所选日期时，会出现在续费提醒中"
-          data={reminderData}
+          withAsterisk
           value={reminderOffsets}
           onChange={(value) => {
             setReminderOffsets(value);
             clearError("reminders");
           }}
-          searchable={false}
-          clearable={false}
           error={errors.reminders}
-          comboboxProps={subscriptionSelectComboboxProps}
-          classNames={subscriptionSelectClassNames}
-        />
+        >
+          <Group gap="md" mt="xs">
+            {reminderData.map((option, index) => (
+              <Checkbox
+                key={option.value}
+                ref={index === 0 ? reminderRef : undefined}
+                value={option.value}
+                label={option.label}
+              />
+            ))}
+          </Group>
+        </Checkbox.Group>
       </Stack>
 
       <div className="subscription-form-footer">
